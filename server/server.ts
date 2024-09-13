@@ -1,6 +1,12 @@
 const { spawn } = require('child_process');
-import { Server, WebSocket } from 'ws';// Define the interface index and output file
-const interfaceIndex: String = '8'  // Replace '5' with the correct interface number
+import { WebSocketServer, WebSocket } from 'ws';
+const interfaceIndex: String = '8';
+import {Packet} from '../shared/Packet';
+import {Stream} from 'stream';
+
+const Streams: Stream[] = [];
+
+
 
 // Start the tshark process
 const tshark = spawn('tshark', ['-i', interfaceIndex, '-T', 'json']);
@@ -15,7 +21,7 @@ tshark.on('close', (code:Number) => {
     console.log(`tshark process exited with code ${code}`);
 });
 
-const wss = new Server({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', (ws: WebSocket) => {
     console.log('New client connected');
