@@ -91,69 +91,93 @@ wss.on('connection', (ws) => {
 });
 // Remove the readline interface
 // Instead, read data chunks from tshark.stdout
-let dataBuffer = '';
 tshark.stdout.setEncoding('utf8');
 tshark.stdout.on('data', async (dataChunk) => {
     dataBuffer += dataChunk;
     processBuffer();
 });
+let dataBuffer = '';
+let linesBuffer = [];
 function processBuffer() {
-    // Replace occurrences of '}{'index' with '}|SPLIT|{"index":'
-    const splitData = dataBuffer.replace(/}\s*{\s*"index":/g, '}|SPLIT|{"index":');
-    // Split the data into packet strings
-    const packetsArray = splitData.split('|SPLIT|');
-    // The last element may be incomplete, so save it back to dataBuffer
-    dataBuffer = packetsArray.pop() || '';
-    for (const packetString of packetsArray) {
-        processPacket(packetString);
-    }
-}
-async function processPacket(packetString) {
-    // Match the index and data parts
-    const match = packetString.match(/^(\{"index":\{.*?\}\})(\{.*\})$/s);
-    if (match) {
-        const indexString = match[1];
-        const dataString = match[2];
-        // Parse the JSON strings
-        try {
-            const indexObj = JSON.parse(indexString);
-            const dataObj = JSON.parse(dataString);
-            // Now process the packet
-            console.log('Index:', indexObj);
-            console.log('Data:', dataObj);
-            const packet = (0, Objects_Modules_1.From_Wireshark_To_PacketObject)(dataObj);
-            // Determine the stream ID from packet properties
-            const streamID = packet.connectionID;
-            let streamtosend;
-            // Find the existing Stream object in Streams array
-            let stream = Streams.find(s => s.connectionID === streamID);
-            if (!stream) {
-                if (Streams.length == 0) {
-                    stream = (0, Objects_Modules_1.Create_Stream)(packet.connectionID, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
-                    Streams.push(stream);
-                    return;
+    let i = 0;
+    while (i < dataBuffer.length) {
+        if (dataBuffer[i] === '{') {
+            let depth = 1;
+            let j = i + 1;
+            while (j < dataBuffer.length && depth > 0) {
+                if (dataBuffer[j] === '{') {
+                    depth++;
                 }
-                else {
-                    streamtosend = Streams[index++];
-                    stream = (0, Objects_Modules_1.Create_Stream)(packet.connectionID, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
-                    Streams.push(stream);
+                else if (dataBuffer[j] === '}') {
+                    depth--;
                 }
-                await (0, Objects_Modules_1.Check_Stream_Validity)(streamtosend);
-                let streamData = JSON.stringify(streamtosend);
-                if (wsClient && wsClient.readyState === ws_1.WebSocket.OPEN) {
-                    await wsClient.send(streamData); // Send the stream data to the client
-                    console.log(`Sent stream data to client: ${streamData}`);
-                }
+                j++;
+            }
+            if (depth === 0) {
+                let jsonStr = dataBuffer.slice(i, j);
+                linesBuffer.push(jsonStr);
+                i = j;
             }
             else {
-                (0, Objects_Modules_1.Assign_Packet_To_Stream)(packet, Streams);
+                // Incomplete JSON object, wait for more data
+                break;
             }
         }
-        catch (error) {
-            console.error(`Error parsing JSON: ${error}`);
+        else {
+            i++;
         }
     }
-    else {
-        console.error('Failed to parse packet:', packetString);
+    dataBuffer = dataBuffer.slice(i);
+    while (linesBuffer.length >= 2) {
+        const indexLine = linesBuffer.shift();
+        const dataLine = linesBuffer.shift();
+        processPacket(indexLine, dataLine);
+    }
+}
+async function processPacket(indexLine, dataLine) {
+    // Parse the JSON strings
+    try {
+        if (typeof indexLine !== 'string' || typeof dataLine !== 'string') {
+            console.log('are not strings');
+            console.log('indexLine:', indexLine);
+            console.log('dataLine:', dataLine);
+        }
+        const indexObj = await JSON.parse(indexLine);
+        const dataObj = await JSON.parse(dataLine);
+        // Combine the two objects
+        const fullobj = await { ...indexObj, ...dataObj };
+        console.log('this is fullobj:', fullobj);
+        const packet = await (0, Objects_Modules_1.From_Wireshark_To_PacketObject)(dataObj);
+        console.log('Packet:', packet);
+        // Determine the stream ID from packet properties
+        const streamID = packet.connectionID;
+        let streamtosend;
+        // Find the existing Stream object in Streams array
+        let stream = Streams.find(s => s.connectionID === streamID);
+        if (!stream) {
+            if (Streams.length == 0) {
+                stream = (0, Objects_Modules_1.Create_Stream)(packet.connectionID, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
+                Streams.push(stream);
+                return;
+            }
+            else {
+                streamtosend = Streams[index++];
+                stream = (0, Objects_Modules_1.Create_Stream)(packet.connectionID, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
+                Streams.push(stream);
+            }
+            await (0, Objects_Modules_1.Check_Stream_Validity)(streamtosend);
+            let streamData = JSON.stringify(streamtosend);
+            if (wsClient && wsClient.readyState === ws_1.WebSocket.OPEN) {
+                await wsClient.send(streamData); // Send the stream data to the client
+                console.log(`Sent stream data to client: ${streamData}`);
+            }
+        }
+        else {
+            (0, Objects_Modules_1.Assign_Packet_To_Stream)(packet, Streams);
+        }
+    }
+    catch (error) {
+        console.log('indexLine Error:', indexLine);
+        console.log('dataLine Error:', dataLine);
     }
 }

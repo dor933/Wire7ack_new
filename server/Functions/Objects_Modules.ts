@@ -25,26 +25,68 @@ async function Check_Stream_Validity(stream: Stream): Promise<void> {
     }
 }
 
-function From_Wireshark_To_PacketObject(data: string): Packet {
-    let packet = new Packet(0, '', '', '', '', new Date(), 0, 0, '', '', 0, '', 0, 0);
-    let packet_parsed = JSON.parse(data);
+async function From_Wireshark_To_PacketObject(packetObj: any): Promise<Packet>   {
+    try{
+        const layers = packetObj.layers;
+        const frame = layers.frame;
+        const eth = layers.eth;
+        const ip = layers.ip || layers.ipv6;
+        const tcp = layers.tcp;
+        const udp = layers.udp;
+        const icmp = layers.icmp || layers.icmpv6;
+    
+        const packetID = parseInt(frame['frame_frame_number'] || '0');
+        const timestampStr = frame['frame_frame_time_epoch'] || frame['frame_frame_time'];
+        const timestamp = new Date(Date.parse(timestampStr));
+        const size = parseInt(frame['frame_frame_len'] || '0');
+        const sourceMAC = eth ? eth['eth_eth_src'] : '';
+        const destinationMAC = eth ? eth['eth_eth_dst'] : '';
+        const sourceIP = ip ? (ip['ip_ip_src'] || ip['ipv6_ipv6_src']) : '';
+        const destinationIP = ip ? (ip['ip_ip_dst'] || ip['ipv6_ipv6_dst']) : '';
+        const protocol = frame['frame_frame_protocols'] || '';
+        const payload = ''; // Extract payload if necessary
+        const activationID = 0; // Define based on your logic
+        const frameLength = size;
+    
+        let sourcePort = 0;
+        let flags = '';
+        let connectionID = 0;
+    
+        if (tcp) {
+            sourcePort = parseInt(tcp['tcp_tcp_srcport'] || '0');
+            flags = tcp['tcp_tcp_flags'] || '';
+            connectionID = parseInt(tcp['tcp_tcp_stream'] || '0');
+        } else if (udp) {
+            sourcePort = parseInt(udp['udp_udp_srcport'] || '0');
+            connectionID = parseInt(udp['udp_udp_stream'] || '0');
+        } else if (icmp) {
+            // Handle ICMP packets
+            sourcePort = 0; // ICMP doesn't have ports
+            flags = '';     // No flags in ICMP
+            connectionID = packetID; // Use packet ID as connection ID
+        }
+    
+        return new Packet(
+            packetID,
+            sourceIP,
+            destinationIP,
+            protocol,
+            payload,
+            timestamp,
+            size,
+            activationID,
+            sourceMAC,
+            destinationMAC,
+            sourcePort,
+            flags,
+            frameLength,
+            connectionID
+        );
+    } catch (error) {
+        console.log('Error in From_Wireshark_To_PacketObject:', error);
+        return new Packet(0, '', '', '', '', new Date(), 0, 0, '', '', 0, '', 0, 0);
+    }
 
-    packet.PacketID = packet_parsed._source.layers.frame["frame.number"];
-    packet.SourceIP = packet_parsed._source.layers.ip ? packet_parsed._source.layers.ip["ip.src"] : '';
-    packet.DestinationIP = packet_parsed._source.layers.ip ? packet_parsed._source.layers.ip["ip.dst"] : '';
-    packet.Protocol = packet_parsed._source.layers.frame["frame.protocols"];
-    packet.Payload = packet_parsed._source.layers.tcp ? packet_parsed._source.layers.tcp["tcp.payload"] : packet_parsed._source.layers.udp ? packet_parsed._source.layers.udp["udp.payload"] : ''; 
-    packet.Timestamp = new Date(packet_parsed._source.layers.frame["frame.time"]);
-    packet.Size = packet_parsed._source.layers.frame["frame.len"];
-    packet.ActivationID = 0; 
-    packet.sourceMAC = packet_parsed._source.layers.eth["eth.src"];
-    packet.destinationMAC = packet_parsed._source.layers.eth["eth.dst"];
-    packet.sourcePort = packet_parsed._source.layers.tcp ? packet_parsed._source.layers.tcp["tcp.srcport"] : packet_parsed._source.layers.udp ? packet_parsed._source.layers.udp["udp.srcport"] : 0;
-    packet.flags = packet_parsed._source.layers.tcp ? packet_parsed._source.layers.tcp["tcp.flags"] : ''; 
-    packet.frameLength = packet_parsed._source.layers.frame["frame.cap_len"];
-    packet.connectionID = packet_parsed._source.layers.tcp ? packet_parsed._source.layers.tcp["tcp.stream"] : packet_parsed._source.layers.udp ? packet_parsed._source.layers.udp["udp.stream"] : 0; 
-
-    return packet;
 }
 
 export {Create_Stream, Assign_Packet_To_Stream, From_Wireshark_To_PacketObject, Check_Stream_Validity};

@@ -88,7 +88,6 @@ wss.on('connection', (ws: WebSocket) => {
 
 // Remove the readline interface
 // Instead, read data chunks from tshark.stdout
-let dataBuffer = '';
 
 tshark.stdout.setEncoding('utf8');
 
@@ -97,36 +96,74 @@ tshark.stdout.on('data', async (dataChunk: string) => {
     processBuffer();
 });
 
+
+let dataBuffer = '';
+let linesBuffer: string[] = [];
+
 function processBuffer() {
-    // Replace occurrences of '}{'index' with '}|SPLIT|{"index":'
-    const splitData = dataBuffer.replace(/}\s*{\s*"index":/g, '}|SPLIT|{"index":');
+    let i = 0;
+    while (i < dataBuffer.length) {
+        if (dataBuffer[i] === '{') {
+            let depth = 1;
+            let j = i + 1;
+            while (j < dataBuffer.length && depth > 0) {
+                if (dataBuffer[j] === '{') {
+                    depth++;
+                } else if (dataBuffer[j] === '}') {
+                    depth--;
+                }
+                j++;
+            }
+            if (depth === 0) {
+                let jsonStr = dataBuffer.slice(i, j);
+                linesBuffer.push(jsonStr);
+                i = j;
+            } else {
+                // Incomplete JSON object, wait for more data
+                break;
+            }
+        } else {
+            i++;
+        }
+    }
+    dataBuffer = dataBuffer.slice(i);
 
-    // Split the data into packet strings
-    const packetsArray = splitData.split('|SPLIT|');
+    while (linesBuffer.length >= 2) {
+        const indexLine = linesBuffer.shift();
+        const dataLine = linesBuffer.shift();
 
-    // The last element may be incomplete, so save it back to dataBuffer
-    dataBuffer = packetsArray.pop() || '';
-
-    for (const packetString of packetsArray) {
-        processPacket(packetString);
+        processPacket(indexLine!, dataLine!);
     }
 }
 
-async function processPacket(packetString: string) {
-    // Match the index and data parts
-    const match = packetString.match(/^(\{"index":\{.*?\}\})(\{.*\})$/s);
-    if (match) {
-        const indexString = match[1];
-        const dataString = match[2];
+async function processPacket(indexLine: string, dataLine: string) {
+       
         // Parse the JSON strings
         try {
-            const indexObj = JSON.parse(indexString);
-            const dataObj = JSON.parse(dataString);
-            // Now process the packet
-            console.log('Index:', indexObj);
-            console.log('Data:', dataObj);
 
-            const packet: Packet = From_Wireshark_To_PacketObject(dataObj);
+           
+        
+           if(typeof indexLine!=='string' || typeof dataLine!=='string'){
+            console.log('are not strings');
+            console.log('indexLine:', indexLine);
+            console.log('dataLine:', dataLine);
+           }
+
+            const indexObj = await JSON.parse(indexLine);
+            const dataObj = await JSON.parse(dataLine);
+           
+
+    
+           
+    
+            // Combine the two objects
+            const fullobj = await { ...indexObj, ...dataObj };
+            console.log('this is fullobj:', fullobj);
+            
+
+            const packet: Packet = await From_Wireshark_To_PacketObject(fullobj);
+
+            console.log('Packet:', packet);
 
             // Determine the stream ID from packet properties
             const streamID = packet.connectionID;
@@ -158,9 +195,8 @@ async function processPacket(packetString: string) {
                 Assign_Packet_To_Stream(packet, Streams);
             }
         } catch (error) {
-            console.error(`Error parsing JSON: ${error}`);
+            console.log('indexLine Error:', indexLine);
+            console.log('dataLine Error:', dataLine);
         }
-    } else {
-        console.error('Failed to parse packet:', packetString);
-    }
+    
 }
