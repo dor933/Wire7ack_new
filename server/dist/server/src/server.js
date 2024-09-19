@@ -147,7 +147,7 @@ async function processPacket(indexLine, dataLine) {
         // Combine the two objects
         const fullobj = await { ...indexObj, ...dataObj };
         console.log('this is fullobj:', fullobj);
-        const packet = await (0, Objects_Modules_1.From_Wireshark_To_PacketObject)(dataObj);
+        const packet = await (0, Objects_Modules_1.From_Wireshark_To_PacketObject)(fullobj);
         console.log('Packet:', packet);
         // Determine the stream ID from packet properties
         const streamID = packet.connectionID;

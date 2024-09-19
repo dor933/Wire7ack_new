@@ -11,9 +11,11 @@ export class Packet {
       public sourceMAC: string,
       public destinationMAC: string,
       public sourcePort: number,
+      public DestPort: number,
       public flags: string,
       public frameLength: number,
-      public connectionID: number 
+      public connectionID: number,
+      public Interface_and_protocol: string,
     ) {}
   }
 
