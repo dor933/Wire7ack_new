@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
-
+import Sub_Header from './Sub_Header';
+import Main_Comp from './Main_Comp';
+import { useGlobal } from './Context/Global';
 
 const Main: React.FC = () => {
 
     const [message, setMessage] = useState<string>('')
     const [isConnected, setIsConnected] = useState<boolean>(false)
     const [messages, setMessages] = useState<string[]>([])
-
+    const { isCaptureStarted, setIsCaptureStarted } = useGlobal();
+    const { isConnectionopen, setIsConnectionopen } = useGlobal();
     useEffect(() => {
 
         //delay function
@@ -52,6 +55,9 @@ const Main: React.FC = () => {
     return (
         <div>
             <Header />
+            <Sub_Header />
+            <Main_Comp />
+
             <h1>WebSocket Client</h1>
             <p>Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
             <ul>
