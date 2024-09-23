@@ -19,6 +19,8 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
             
 
         }}>
+        
+
             <Grid item xs={2}>
                 {
                     props.ActionName==="Start" ? <PlayArrowIcon style={{

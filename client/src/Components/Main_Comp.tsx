@@ -3,7 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { Grid,Box } from "@mui/material";
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SearchBar from "./SearchBar";
-
+import Top_Table_Element from "./Top_Table_Element";
+//import calender icon
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import Connection_Columns from "./Connection_Columns";
 
 const Main_Comp: React.FC = () => {
     return (
@@ -111,6 +116,93 @@ const Main_Comp: React.FC = () => {
                 </Grid>
 
             </Grid>
+            <Grid container item xs={12} style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                alignSelf: "stretch",
+                flexDirection: "row",
+            }}>
+                 <Grid container item xs={8} style={{
+                flexDirection:"row",
+                display:"flex",
+                alignItems:"flex-start",
+                gap:"10px",
+
+                
+                
+            }}>
+                <Top_Table_Element  ElementName="Date" Icon={<CalendarTodayIcon style={{
+                    color: "#326591",
+                    fontSize: "23px",
+                    marginTop: "5px",
+                }}/>}/>
+                <Top_Table_Element ElementName="Protocol" Icon={<KeyboardArrowDownIcon style={{
+                    color: "#326591",
+                    fontSize: "23px",
+                    marginTop: "5px",
+                }}/>}/>
+
+<Top_Table_Element  ElementName="Flags" Icon={<KeyboardArrowDownIcon style={{
+                    color: "#326591",
+                    fontSize: "23px",
+                    marginTop: "5px",
+                }}/>}/>
+                <Top_Table_Element  ElementName="Data Volume" Icon={<KeyboardArrowDownIcon style={{
+                    color: "#326591",
+                    fontSize: "23px",
+                    marginTop: "5px",
+                }}/>}/>
+                
+
+
+            </Grid>
+            <Grid container item xs={4} style={{
+                flexDirection:"row",
+                display:"flex",
+                justifyContent:"flex-end",
+             
+            }}>
+
+           <Box style={{
+            color: "#304C57",
+            fontFamily: "Roboto",
+            fontSize: "16px",
+            fontWeight: "400",
+            lineHeight: "normal",
+            opacity: "0.6",
+            display:"flex",
+            alignItems:"flex-start",
+            justifyContent:"flex-start",
+            padding: "10px 15px",
+            borderRadius: "10px",
+            border: "1px solid rgba(48, 76, 87, 0.20)",
+            background: "#FFF",
+            boxShadow: "0px 0px 5px 0px rgba(0, 0, 0, 0.10)",
+           }}>
+
+            <div style={{
+                display:"flex",
+                alignItems:"center",
+                gap:"10px",
+            }}>
+                                Clear All
+
+                <HighlightOffIcon style={{
+                    color: "#000000",
+                    fontSize: "23px",
+                }}/>
+                </div>
+
+     
+           </Box>
+       
+               
+
+                </Grid>
+
+                </Grid>
+                <Connection_Columns/>
 
         </Grid>
     )
