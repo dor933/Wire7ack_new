@@ -6,18 +6,18 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { Stream } from '../../shared/Stream';
 import fs from 'fs';
 
-function Create_Stream(connectionID: number, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
-    return new Stream(connectionID, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
-}
+function Create_Stream(Index:number,connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
+    return new Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
 
-function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): void {
+function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean {
 
     let Relevant_stream = Streams.find(stream => stream.connectionID === packet.connectionID && stream.ActivationID === packet.ActivationID && stream.Protocol === packet.Protocol);
     if(Relevant_stream === undefined){
         console.log("Stream not found");
-        return;
+        return false;
     }
     Relevant_stream.Packets.push(packet);
+    return true;
 
 }
 
@@ -67,6 +67,8 @@ export function processCaptureFile(
         const packet = fromWiresharkToPacketObject(packetObj);
 
         // Process the packet (e.g., assign to streams)
+
+
         // For simplicity, we'll send the packet data directly to clients
         const packetData = JSON.stringify(packet);
         //write it to tshark_output.log

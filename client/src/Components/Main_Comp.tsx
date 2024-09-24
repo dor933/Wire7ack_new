@@ -9,8 +9,21 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import Connection_Columns from "./Connection_Columns";
+import Table from "./Table";
+import { Stream as Stream } from '../../../shared/Stream';
 
-const Main_Comp: React.FC = () => {
+
+interface Main_CompProps {
+    rows:Stream[]
+}
+
+
+const Main_Comp: React.FC<Main_CompProps> = (props) => {
+
+    const newrows=props.rows;
+
+    
+
     return (
       
         <Grid container style={{
@@ -132,23 +145,32 @@ const Main_Comp: React.FC = () => {
                 
                 
             }}>
-                <Top_Table_Element  ElementName="Date" Icon={<CalendarTodayIcon style={{
+                <Top_Table_Element Data={[]}  ElementName="Date" Icon={<CalendarTodayIcon style={{
                     color: "#326591",
                     fontSize: "23px",
                     marginTop: "5px",
                 }}/>}/>
-                <Top_Table_Element ElementName="Protocol" Icon={<KeyboardArrowDownIcon style={{
+                <Top_Table_Element Data={
+                  //list all the unique values of the Protocol field
+                    newrows.map((row)=>row.Protocol).filter((value,index,self)=>self.indexOf(value)===index)
+                }  ElementName="Protocol" Icon={<KeyboardArrowDownIcon style={{
                     color: "#326591",
                     fontSize: "23px",
                     marginTop: "5px",
                 }}/>}/>
 
-<Top_Table_Element  ElementName="Flags" Icon={<KeyboardArrowDownIcon style={{
+<Top_Table_Element Data={
+  
+  //list all the unique values of the Flags field inside the Packet array in the Stream object
+
+    newrows.map((row)=>row.Packets.map((packet)=>packet.flags)).flat().filter((value,index,self)=>self.indexOf(value)===index)
+
+}  ElementName="Flags" Icon={<KeyboardArrowDownIcon style={{
                     color: "#326591",
                     fontSize: "23px",
                     marginTop: "5px",
                 }}/>}/>
-                <Top_Table_Element  ElementName="Data Volume" Icon={<KeyboardArrowDownIcon style={{
+                <Top_Table_Element Data={[]}  ElementName="Data Volume" Icon={<KeyboardArrowDownIcon style={{
                     color: "#326591",
                     fontSize: "23px",
                     marginTop: "5px",
@@ -202,7 +224,8 @@ const Main_Comp: React.FC = () => {
                 </Grid>
 
                 </Grid>
-                <Connection_Columns/>
+                <Table rows={newrows}/>
+                {/* <Connection_Columns/> */}
 
         </Grid>
     )

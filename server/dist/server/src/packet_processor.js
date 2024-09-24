@@ -9,16 +9,17 @@ const child_process_1 = require("child_process");
 const ws_1 = require("ws");
 const Stream_1 = require("../../shared/Stream");
 const fs_1 = __importDefault(require("fs"));
-function Create_Stream(connectionID, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
-    return new Stream_1.Stream(connectionID, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
+function Create_Stream(Index, connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
+    return new Stream_1.Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
 }
 function Assign_Packet_To_Stream(packet, Streams) {
     let Relevant_stream = Streams.find(stream => stream.connectionID === packet.connectionID && stream.ActivationID === packet.ActivationID && stream.Protocol === packet.Protocol);
     if (Relevant_stream === undefined) {
         console.log("Stream not found");
-        return;
+        return false;
     }
     Relevant_stream.Packets.push(packet);
+    return true;
 }
 //create a function that runs through the stream object on its packets array and if there is at least one error packet, it will set the validity of the stream to false
 async function Check_Stream_Validity(stream) {
