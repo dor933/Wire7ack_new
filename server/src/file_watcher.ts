@@ -5,6 +5,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { processCaptureFile } from './packet_processor';
 import { WebSocket, WebSocketServer } from 'ws';
+import { Stream } from './shared/Stream';
+
+const Streams: Stream[] = [];
 
 export function startFileWatcher(
   captureDirectory: string,
@@ -67,7 +70,7 @@ function handleFile(
     // If the file hasn't been modified in the last 5 seconds, process it
     if (now - mtime > 5000) {
       processedFiles.add(filePath);
-      processCaptureFile(filePath,ws, () => {
+      processCaptureFile(filePath,ws,Streams, () => {
         // After processing, delete the file
         fs.unlink(filePath, (err) => {
           if (err) {

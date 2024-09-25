@@ -2,9 +2,9 @@ import "../App.css";
 import React, { useEffect, useState } from 'react';
 import { Grid,Box } from "@mui/material";
 //import Logo image 
-import Logo from "..//assets/Logo.png";
 import SearchBar from "./SearchBar";
 import PersonIcon from '@mui/icons-material/Person';
+import Logo from "../assets/Logo.png";
 
 
 

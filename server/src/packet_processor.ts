@@ -1,12 +1,13 @@
 // packet_processor.ts
 
 import { exec } from 'child_process';
-import { Packet } from '../../shared/Packet';
+import { Packet } from './shared/Packet';
 import { WebSocket, WebSocketServer } from 'ws';
-import { Stream } from '../../shared/Stream';
+import { Stream } from './shared/Stream';
 import fs from 'fs';
+import JSONBig from 'json-bigint';
 
-function Create_Stream(Index:number,connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
+ function Create_Stream(Index:number,connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
     return new Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
 
 function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean {
@@ -23,6 +24,7 @@ function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean {
 
 //create a function that runs through the stream object on its packets array and if there is at least one error packet, it will set the validity of the stream to false
 async function Check_Stream_Validity(stream: Stream): Promise<void> {
+
     let error_packet = stream.Packets.find(packet => packet.flags === "0x00000002");
     if(error_packet !== undefined){
         stream.validity = false;
@@ -32,6 +34,7 @@ async function Check_Stream_Validity(stream: Stream): Promise<void> {
 export function processCaptureFile(
   filePath: string,
   ws: WebSocketServer,
+  Streams: Stream[],
   callback: () => void
 ): void {
   console.log(`Processing file: ${filePath}`);
@@ -51,13 +54,16 @@ export function processCaptureFile(
     }
 
     try {
-      const packetsArray = JSON.parse(stdout);
+
+      const JSONbigNative = JSONBig({ useNativeBigInt: true });
+      const packetsArray = JSONbigNative.parse(stdout);
+      
 
 
 
 
       // Process each packet
-      packetsArray.forEach((packetObj: any) => {
+      packetsArray.forEach( (packetObj: any) => {
         console.dir(packetObj, { depth: null, colors: true });
 
         const packetDatawrite = JSON.stringify(packetObj);
@@ -68,21 +74,47 @@ export function processCaptureFile(
 
         // Process the packet (e.g., assign to streams)
 
+            console.log('entered to check stream');
+        
+        let assign_to_stream=Assign_Packet_To_Stream(packet,Streams);
+        if(!assign_to_stream){
+             let new_stream =  Create_Stream(Streams.length+1,packet.connectionID,packet.SourceIP,packet.DestinationIP,packet.ActivationID,packet.Interface_and_protocol,true,packet.Timestamp,packet.Timestamp,0,0,BigInt(0),packet.Protocol);
+            new_stream.Packets.push(packet);
+            Streams.push(new_stream);
 
-        // For simplicity, we'll send the packet data directly to clients
-        const packetData = JSON.stringify(packet);
-        //write it to tshark_output.log
+            if(Streams.length>1){
+                  Check_Stream_Validity(Streams[Streams.length-2]);
 
-        ws.clients.forEach((client: WebSocket) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(packetData);
-            }
-            }
+                 console.log('entered to send stream');
+                 let streamData =Streams[Streams.length-2]
+                 streamData.DataVolume= streamData.DataVolume.toString();
+                 let mystream=JSON.stringify(streamData);
+                 ws.clients.forEach((client: WebSocket) => {
+                  if (client.readyState === WebSocket.OPEN) {
+                      client.send(mystream);
+                  }
+                  }
+                );
+
+
+
+       
+          }
+
+          //wait for 30 seconds
+
+
+        }
+      
+
+   
+
+      }
+
         );
 
         
-        
-      });
+    
 
       console.log(`Finished processing file: ${filePath}`);
       callback();

@@ -10,8 +10,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import Connection_Columns from "./Connection_Columns";
 import Table from "./Table";
-import { Stream as Stream } from '../../../shared/Stream';
-
+import { Stream as Stream } from '../shared/Stream';
 
 interface Main_CompProps {
     rows:Stream[]
@@ -22,6 +21,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
     const newrows=props.rows;
 
+    console.log('new rows are',newrows);
     
 
     return (
