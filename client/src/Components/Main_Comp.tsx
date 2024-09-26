@@ -11,15 +11,25 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import Connection_Columns from "./Connection_Columns";
 import Table from "./Table";
 import { Stream as Stream } from '../shared/Stream';
+import {Checkbox} from "@mui/material";
 
 interface Main_CompProps {
-    rows:Stream[]
+    rows:Stream[],
+    setrows:Function,
 }
 
 
 const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
     const newrows=props.rows;
+    const [ChosenFields,setChosenFields]=useState<string[]>([]);
+
+    const handleclearall=()=>{
+        props.setrows([]);
+    }
+    
+
+
 
     console.log('new rows are',newrows);
     
@@ -88,14 +98,15 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 alignItems:"center",
                 justifyContent:"flex-end",
             }}>
-                <Grid item xs={4} xl={2} style={{
+                <Grid container item xs={4} xl={2} style={{
                     display: "flex",
                     padding: "10px 15px",
                     alignItems: "center",
-                    gap: "10px",
                     borderRadius: "10px",
                     background: "rgba(64, 75, 137, 0.10)",
                 }}>
+
+
                           <Grid item xs={2} >
                     <FilterAltIcon style={{
                         color: "#326591",
@@ -110,16 +121,42 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                     fontWeight: "600",
                     fontStyle: "normal",
                     lineHeight: "normal",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   
 
                 }}>
                     Add Filter
                     </Grid>
+                   
+
 
                 </Grid>
 
+                {/* <Grid container item xs={12} style={{ 
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    justifyContent: "flex-end",
+                }}>
+                    <Grid item xs={2} style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}>
+                        <Checkbox
+                            defaultChecked
+                            color="primary"
+                            inputProps={{ 'aria-label': 'secondary checkbox' }}
+                        />
+                        
+                    </Grid>
+
+                    </Grid> */}
+
                 <Grid item xs={4}>
-                    <SearchBar SearchType="Search"/>
+                    <SearchBar SearchType="Search" Fields={ChosenFields}/>
 
                 </Grid>
 
@@ -182,16 +219,119 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
             <Grid container item xs={4} style={{
                 flexDirection:"row",
                 display:"flex",
-                justifyContent:"flex-end",
+                justifyContent:"space-between",
              
             }}>
+                      <Box
+  style={{
+    color: "#304C57",
+    fontFamily: "Roboto",
+    fontSize: "16px",
+    fontWeight: "400",
+    lineHeight: "normal",
+    opacity: "0.6",
+    marginTop:"-35px",
+    display: "flex",
+    flexDirection: "column", // This makes the content flow into two rows
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    margin: "auto",
+    width: "70%", // Ensure the Box spans the full width of the container
+  }}
+>
+  <div    style={{
+      display: "flex",
+      alignItems: "center",
+      marginBottom: "8px", // Adds space between rows
+    }}>
+    <span style={{ fontWeight: "600",minWidth:"140px",flexGrow:1 }}>Source IP</span>
+    <Checkbox
+      defaultChecked={false}
+      color="primary"
+      id="source.ip"
+        onChange={(e)=>{
+    
+            if(e.target.checked){
+            setChosenFields([...ChosenFields,"Source IP"]);
+            }
+            else{
+            setChosenFields(ChosenFields.filter((field)=>field!=="Source IP"));
+            }
+        }
+    }
 
+      inputProps={{ "aria-label": "secondary checkbox" }}
+    />
+    <span style={{ fontWeight: "600",minWidth:"140px",flexGrow:1 }}>Destination IP</span>
+    <Checkbox
+      defaultChecked={false}
+      color="primary"
+      id="dest.ip"
+      onChange={(e)=>{
+        if(e.target.checked){
+          setChosenFields([...ChosenFields,"Destination IP"]);
+        }
+        else{
+          setChosenFields(ChosenFields.filter((field)=>field!=="Destination IP"));
+        }
+      }
+    }
+      inputProps={{ "aria-label": "secondary checkbox" }}
+    />
+ 
+        
+     
+  </div>
+
+  <div    style={{
+      display: "flex",
+      alignItems: "center",
+      marginBottom: "8px", // Adds space between rows
+    }}>
+  <span style={{ fontWeight: "600",minWidth:"140px",flexGrow:1 }}>Validity</span>
+
+  <Checkbox
+      defaultChecked={false}
+      color="primary"
+      id="validity"
+      onChange={(e)=>{
+        if(e.target.checked){
+          setChosenFields([...ChosenFields,"Validity"]);
+        }
+        else{
+          setChosenFields(ChosenFields.filter((field)=>field!=="Validity"));
+        }
+
+      }
+    }
+      inputProps={{ "aria-label": "secondary checkbox" }}
+    />
+    <span style={{ fontWeight: "600",minWidth:"140px",flexGrow:1 }}>Protocol</span>
+        <Checkbox
+      defaultChecked={false}
+      id="protocol"
+        onChange={(e)=>{
+            if(e.target.checked){
+            setChosenFields([...ChosenFields,"Protocol"]);
+            }
+            else{
+            setChosenFields(ChosenFields.filter((field)=>field!=="Protocol"));
+            }
+    
+        }
+    }
+      color="primary"
+      inputProps={{ "aria-label": "secondary checkbox" }}
+    />
+  </div>
+</Box>
            <Box style={{
             color: "#304C57",
             fontFamily: "Roboto",
             fontSize: "16px",
             fontWeight: "400",
             lineHeight: "normal",
+            height: "fit-content",
             opacity: "0.6",
             display:"flex",
             alignItems:"flex-start",
@@ -203,10 +343,11 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
             boxShadow: "0px 0px 5px 0px rgba(0, 0, 0, 0.10)",
            }}>
 
-            <div style={{
+            <div onClick={()=> handleclearall()} style={{
                 display:"flex",
                 alignItems:"center",
                 gap:"10px",
+                cursor:"pointer",
             }}>
                                 Clear All
 

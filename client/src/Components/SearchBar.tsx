@@ -9,10 +9,22 @@ type Searchtypes = 'Quick Action' | 'Search';
 
 interface SearchBarProps {
   SearchType: Searchtypes;
+  Fields: string[] 
 }
 
 
+
 export default function SearchBar(props: SearchBarProps) {
+
+  const [MyFields, setMyFields] = React.useState<string[]>(props.Fields);
+
+  React.useEffect(() => {
+    setMyFields(props.Fields);
+  }
+  , [props.Fields]);
+
+
+  
     return (
       <Paper
         component="form"
@@ -22,7 +34,13 @@ export default function SearchBar(props: SearchBarProps) {
         <InputBase
           sx={{ ml: 1, flex: 1 }}
           placeholder={props.SearchType==='Quick Action' ? "Quick Action" : props.SearchType==='Search' ? "Search For Connection" : ""}
-          inputProps={{ 'aria-label': 'search google maps' }}
+          inputProps={{ 'aria-label': 'search google maps' }} value=
+          
+          {
+            MyFields.map((field, index) => (
+              field + ":" +" "
+            ))
+          }
         />
         <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
           <SearchIcon />

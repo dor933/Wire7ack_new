@@ -11,6 +11,9 @@ import Logo from "../assets/Logo.png";
 
 
 const Header: React.FC = () => {
+
+    const [array, setArray] = useState<string[]>(['one','two']);
+
     return (
        <Grid container style={{display: "flex",
         width:"100%",
@@ -130,7 +133,7 @@ const Header: React.FC = () => {
                      
                     }}>
 
-                       <SearchBar SearchType="Quick Action"/>
+                       <SearchBar Fields={array} SearchType="Quick Action"/>
                        
 
                     </Grid>

@@ -10,7 +10,7 @@ import JSONBig from 'json-bigint';
  function Create_Stream(Index:number,connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
     return new Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
 
-function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean {
+function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean|Stream {
 
     let Relevant_stream = Streams.find(stream => stream.connectionID === packet.connectionID && stream.ActivationID === packet.ActivationID && stream.Protocol === packet.Protocol);
     if(Relevant_stream === undefined){
@@ -68,7 +68,6 @@ export function processCaptureFile(
 
         const packetDatawrite = JSON.stringify(packetObj);
 
-        fs.appendFileSync('tshark_output.log', packetDatawrite + '\n');
 
         const packet = fromWiresharkToPacketObject(packetObj);
 
@@ -78,7 +77,7 @@ export function processCaptureFile(
         
         let assign_to_stream=Assign_Packet_To_Stream(packet,Streams);
         if(!assign_to_stream){
-             let new_stream =  Create_Stream(Streams.length+1,packet.connectionID,packet.SourceIP,packet.DestinationIP,packet.ActivationID,packet.Interface_and_protocol,true,packet.Timestamp,packet.Timestamp,0,0,BigInt(0),packet.Protocol);
+             let new_stream =  Create_Stream(Streams.length+1,packet.connectionID,packet.SourceIP,packet.DestinationIP,packet.ActivationID,packet.Protocol,true,packet.Timestamp,packet.Timestamp,0,0,BigInt(0),packet.Protocol);
             new_stream.Packets.push(packet);
             Streams.push(new_stream);
 
@@ -101,10 +100,24 @@ export function processCaptureFile(
        
           }
 
-          //wait for 30 seconds
 
 
         }
+
+        if(assign_to_stream instanceof Stream){
+
+          assign_to_stream.DataVolume= assign_to_stream.DataVolume.toString();
+          let mystream=JSON.stringify(assign_to_stream);
+          
+
+        ws.clients.forEach((client: WebSocket) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(mystream);
+          }
+        })
+      }
+          
+
       
 
    

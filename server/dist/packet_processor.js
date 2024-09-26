@@ -8,7 +8,6 @@ exports.processCaptureFile = processCaptureFile;
 const child_process_1 = require("child_process");
 const ws_1 = require("ws");
 const Stream_1 = require("./shared/Stream");
-const fs_1 = __importDefault(require("fs"));
 const json_bigint_1 = __importDefault(require("json-bigint"));
 function Create_Stream(Index, connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
     return new Stream_1.Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
@@ -49,13 +48,12 @@ function processCaptureFile(filePath, ws, Streams, callback) {
             packetsArray.forEach((packetObj) => {
                 console.dir(packetObj, { depth: null, colors: true });
                 const packetDatawrite = JSON.stringify(packetObj);
-                fs_1.default.appendFileSync('tshark_output.log', packetDatawrite + '\n');
                 const packet = fromWiresharkToPacketObject(packetObj);
                 // Process the packet (e.g., assign to streams)
                 console.log('entered to check stream');
                 let assign_to_stream = Assign_Packet_To_Stream(packet, Streams);
                 if (!assign_to_stream) {
-                    let new_stream = Create_Stream(Streams.length + 1, packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Interface_and_protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
+                    let new_stream = Create_Stream(Streams.length + 1, packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
                     new_stream.Packets.push(packet);
                     Streams.push(new_stream);
                     if (Streams.length > 1) {
@@ -70,7 +68,15 @@ function processCaptureFile(filePath, ws, Streams, callback) {
                             }
                         });
                     }
-                    //wait for 30 seconds
+                }
+                if (assign_to_stream instanceof Stream_1.Stream) {
+                    assign_to_stream.DataVolume = assign_to_stream.DataVolume.toString();
+                    let mystream = JSON.stringify(assign_to_stream);
+                    ws.clients.forEach((client) => {
+                        if (client.readyState === ws_1.WebSocket.OPEN) {
+                            client.send(mystream);
+                        }
+                    });
                 }
             });
             console.log(`Finished processing file: ${filePath}`);

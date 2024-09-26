@@ -5,12 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
 require("../App.css");
+const react_1 = require("react");
 const material_1 = require("@mui/material");
 //import Logo image 
 const SearchBar_1 = __importDefault(require("./SearchBar"));
 const Person_1 = __importDefault(require("@mui/icons-material/Person"));
 const Logo_png_1 = __importDefault(require("../assets/Logo.png"));
 const Header = () => {
+    const [array, setArray] = (0, react_1.useState)(['one', 'two']);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, { container: true, style: { display: "flex",
             width: "100%",
             padding: "10px 30px",
@@ -62,7 +64,7 @@ const Header = () => {
                 }, children: [(0, jsx_runtime_1.jsx)(material_1.Grid, { item: true, xs: 6, style: {
                             display: "flex",
                             justifyContent: "flex-end",
-                        }, children: (0, jsx_runtime_1.jsx)(SearchBar_1.default, { SearchType: "Quick Action" }) }), (0, jsx_runtime_1.jsxs)(material_1.Grid, { container: true, item: true, xs: 6, style: {
+                        }, children: (0, jsx_runtime_1.jsx)(SearchBar_1.default, { Fields: array, SearchType: "Quick Action" }) }), (0, jsx_runtime_1.jsxs)(material_1.Grid, { container: true, item: true, xs: 6, style: {
                             display: "flex",
                             alignItems: "center",
                             gap: "10px",
