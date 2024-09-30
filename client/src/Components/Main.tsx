@@ -11,7 +11,6 @@ const Main: React.FC = () => {
   const { isCaptureStarted, setIsCaptureStarted } = useGlobal();
   const { isConnectionopen, setIsConnectionopen } = useGlobal();
   const streamsRef = useRef<Stream[]>([]);
-  const messagesRef = useRef<string[]>([]);
 
   useEffect(() => {
     const socket = new WebSocket('ws://127.0.0.1:8080');
@@ -51,7 +50,6 @@ const Main: React.FC = () => {
         
               // Accumulate streams and messages
               streamsRef.current.push(stream);
-              messagesRef.current.push(event.data);
         }
        
 
