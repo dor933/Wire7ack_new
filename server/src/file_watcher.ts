@@ -8,6 +8,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { Stream } from './shared/Stream';
 
 const Streams: Stream[] = [];
+let watcher: chokidar.FSWatcher | null = null;
 
 export function startFileWatcher(
   captureDirectory: string,
@@ -48,6 +49,25 @@ export function startFileWatcher(
     });
 }
 
+export function stopFileWatcher(onComplete: () => void, CaptureDirectory:string): void {
+
+  if (!watcher) {
+    console.error('Watcher is not running or is already stopped.');
+    return;
+  }
+  
+  watcher.close()!.then(() => {
+    console.log('File watcher stopped. Processing remaining files...');
+    checkIfProcessingIsComplete(CaptureDirectory, onComplete); // Process any remaining files
+  }).catch((error) => {
+    console.error('Error closing the watcher:', error);
+  }).finally(() => {
+    watcher = null; // Reset watcher to null after it's closed
+  });
+
+  
+}
+
 function handleFile(
   filePath: string,
   ws: WebSocketServer,
@@ -84,3 +104,26 @@ function handleFile(
     }
   });
 }
+
+
+function checkIfProcessingIsComplete(captureDirectory: string, onComplete: () => void): void {
+  const intervalId = setInterval(() => {
+    fs.readdir(captureDirectory, (err, files) => {
+      if (err) {
+        console.error(`Error reading directory ${captureDirectory}: ${err.message}`);
+        clearInterval(intervalId);
+        return;
+      }
+
+      if (files.length === 0) {
+        console.log('Capture directory is empty. All files processed.');
+        clearInterval(intervalId);
+        onComplete();
+      } else {
+        console.log(`Files remaining in directory: ${files.length}`);
+      }
+    });
+  }, 1000); // Check every 1 second if the folder is empty
+}
+
+

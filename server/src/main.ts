@@ -7,6 +7,7 @@ import { startWebSocketServer } from './websocket_server';
 import { startFileWatcher } from './file_watcher';
 import { WebSocketServer } from 'ws';
 
+export const startMainProcess = () => {
 const interfaceIndex = '5'; // Replace with your interface index
 const captureDirectory = path.join(__dirname, 'captures');
 const baseFileName = 'capture';
@@ -54,3 +55,6 @@ const wsServer: WebSocketServer = startWebSocketServer();
 
 // Start the file watcher and pass the WebSocket server to it
 startFileWatcher(captureDirectory, wsServer);
+
+return "Main process started successfully";
+}

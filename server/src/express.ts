@@ -1,4 +1,9 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
+import { startMainProcess } from './main';
+import { stopFileWatcher } from './file_watcher';
+import path from 'path';
+
+const capturedirectory= path.join(__dirname, './captures');
 
 const app: Application = express();
 
@@ -9,6 +14,33 @@ app.use(express.json());
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript with Express!');
 });
+
+app.get('/start', (req: Request, res: Response) => {
+    try {
+      const result = startMainProcess();
+      res.send(result);
+    } catch (error) {
+      console.error('Error starting the main process:', error);
+      res.status(500).send('Failed to start the main process');
+    }
+  });
+
+  app.get('/stop', (req: Request, res: Response) => {
+    try {
+
+      const result = stopFileWatcher(()=>{
+
+        console.log('File watcher stopped. Processing remaining files...');
+
+      },capturedirectory);
+
+        res.send(result);
+
+    } catch (error) {
+      console.error('Error stopping the main process:', error);
+      res.status(500).send('Failed to stop the main process');
+    }
+  });
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
