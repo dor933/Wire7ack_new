@@ -5,14 +5,33 @@ import { Grid,Box } from "@mui/material";
 import SearchBar from "./SearchBar";
 import PersonIcon from '@mui/icons-material/Person';
 import Logo from "../assets/Logo.png";
-
+import { useGlobal } from "./Context/Global";
 
 
 
 
 const Header: React.FC = () => {
 
-    const [array, setArray] = useState<string[]>(['one','two']);
+
+    const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+
+    useEffect(() => {
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
+  
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+  
+      // Cleanup listeners on component unmount
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }, []);
+ 
+
+
+
 
     return (
        <Grid container style={{display: "flex",
@@ -29,12 +48,14 @@ const Header: React.FC = () => {
                 }}>
 
                     <Grid item xs={3} style={{
+
                      
                     }}>
 
                         <Box style={{fontSize:"20px",fontWeight:"bold"}}>
 
                             <img src={Logo} alt="Logo" style={{height:"180px",
+                            marginLeft:"-20px"
                             }}/>
                         </Box>
                        
@@ -133,7 +154,7 @@ const Header: React.FC = () => {
                      
                     }}>
 
-                       <SearchBar Fields={array} SearchType="Quick Action"/>
+                       <SearchBar  SearchType="Quick Action"/>
                        
 
                     </Grid>
@@ -175,7 +196,7 @@ const Header: React.FC = () => {
 </svg>
                         </Grid>
 
-                    <Grid container item xs={4} style={{
+                    <Grid container item xs={5} xl={4} style={{
                         display: "flex",
                         padding: "5px 10px",
                         alignItems: "center",
@@ -204,7 +225,7 @@ const Header: React.FC = () => {
                             height: "24px",
                         }}>
                             <PersonIcon style={{
-                                color: "#304C57",
+                                color: isOnline? "#258051": "#304C57",
                                 fontSize: "24px",
                             }}/>
                         </Grid>

@@ -6,6 +6,9 @@ interface GlobalContext {
 
     isConnectionopen: boolean;
     setIsConnectionopen: React.Dispatch<React.SetStateAction<boolean>>;
+
+  
+
 }
 
 const GlobalContext = createContext<GlobalContext | undefined>(undefined);

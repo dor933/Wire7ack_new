@@ -6,6 +6,9 @@ import { useGlobal } from './Context/Global';
 import { Stream } from '../shared/Stream';
 import { Packet } from '../shared/Packet';
 
+
+
+
 const Main: React.FC = () => {
   const [streams, setStreams] = useState<Stream[]>([]);
   const { isCaptureStarted, setIsCaptureStarted } = useGlobal();

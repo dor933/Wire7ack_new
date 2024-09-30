@@ -1,6 +1,7 @@
 import "../App.css";
 import React from 'react';
 import { Grid } from "@mui/material";
+import {useMediaQuery} from "@mui/material";
 
 interface Packet_ViewsProps {
     ViewName: string;
@@ -9,6 +10,10 @@ interface Packet_ViewsProps {
 }
 
 const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
+
+
+    const isxl = useMediaQuery('(min-width:1920px)');
+
     const getBorderColor = () => {
         return props.ViewName === 'All Connections'
             ? "rgba(64, 75, 137, 0.10)"
@@ -42,7 +47,9 @@ const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
     return (
         <Grid container item xs={4} lg={3} style={{
             display: "flex",
-            padding: "10px 15px",
+            paddingTop:"10px",
+            paddingBottom:"10px",
+            paddingLeft:isxl? "10px":"2px",
             cursor: "pointer",
             alignItems: "center",
             borderRadius: "10px",
@@ -51,14 +58,17 @@ const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
             boxShadow:props.ChosenView === props.ViewName ? "10px 10px 10px 10px rgba(0, 0, 0, 0.10)" : "",
             opacity: props.ChosenView === props.ViewName ? 1 : 0.5,
         }} onClick={() => props.SetChosenView(props.ViewName)}>
-            <Grid item xs={2}>
+            <Grid item xs={2} style={{
+                display: "flex",
+                justifyContent: "center",
+            }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="7" height="12" viewBox="0 0 7 8" fill="none">
                     <circle cx="3.5" cy="4" r="3.5" fill={getFillColor()} />
                 </svg>
             </Grid>
 
             <Grid item xs={10} style={{
-                fontSize: "16px",
+                fontSize: isxl? "16px": '11px',
                 fontWeight: "600",
                 lineHeight: "normal",
                 color: getFillColor(),

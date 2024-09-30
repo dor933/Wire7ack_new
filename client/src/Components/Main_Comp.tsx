@@ -17,7 +17,7 @@ import { Visibility } from "@mui/icons-material";
 
 interface Main_CompProps {
     rows:Stream[],
-    setrows:Function,
+    setrows:Function
 }
 
 
@@ -36,6 +36,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
     const handleclearall=()=>{
         props.setrows([]);
+        
     }
 
     useEffect(()=>{
@@ -269,7 +270,6 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     alignItems: "flex-start",
     justifyContent: "flex-start",
     margin: "auto",
-    width: "70%", // Ensure the Box spans the full width of the container
     opacity: isfiltervisible ? "1" : "0",
   }}
 >
@@ -278,7 +278,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
       alignItems: "center",
       marginBottom: "8px", // Adds space between rows
     }}>
-    <span style={{ fontWeight: "600",minWidth:"140px",flexGrow:1 }}>Source IP</span>
+    <span style={{ color:"#304C57",fontWeight: "400",minWidth:"120px",flexGrow:1 }}>Source IP</span>
     <Checkbox
       defaultChecked={false}
       color="primary"
@@ -296,7 +296,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
       inputProps={{ "aria-label": "secondary checkbox" }}
     />
-    <span style={{ fontWeight: "600",minWidth:"140px",flexGrow:1 }}>Destination IP</span>
+    <span style={{ fontWeight: "400",minWidth:"120px",flexGrow:1,color: "#304C57", }}>Destination IP</span>
     <Checkbox
       defaultChecked={false}
       color="primary"
@@ -322,7 +322,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
       alignItems: "center",
       marginBottom: "8px", // Adds space between rows
     }}>
-  <span style={{ fontWeight: "600",minWidth:"140px",flexGrow:1 }}>Validity</span>
+  <span style={{color: "#304C57", fontWeight: "400",minWidth:"120px",flexGrow:1 }}>Validity</span>
 
   <Checkbox
       defaultChecked={false}
@@ -340,7 +340,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     }
       inputProps={{ "aria-label": "secondary checkbox" }}
     />
-    <span style={{ fontWeight: "600",minWidth:"140px",flexGrow:1 }}>Protocol</span>
+    <span style={{ color: "#304C57",fontWeight: "400",minWidth:"120px",flexGrow:1 }}>Protocol</span>
         <Checkbox
       defaultChecked={false}
       id="protocol"
@@ -359,7 +359,18 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     />
   </div>
 </Box>
-           <Box style={{
+          
+       
+               
+
+                </Grid>
+
+           <Grid container style={{
+            display:'flex',
+            justifyContent:'flex-end'
+           }}>
+
+                <Box style={{
             color: "#304C57",
             fontFamily: "Roboto",
             fontSize: "16px",
@@ -393,10 +404,8 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
      
            </Box>
-       
-               
+           </Grid>
 
-                </Grid>
 
                 </Grid>
                 <Table rows={newrows} ProtocolFilter={ProtocolFilter} 

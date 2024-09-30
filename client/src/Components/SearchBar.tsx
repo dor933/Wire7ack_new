@@ -9,17 +9,17 @@ type Searchtypes = 'Quick Action' | 'Search';
 
 interface SearchBarProps {
   SearchType: Searchtypes;
-  Fields: string[] 
+  Fields?: string[];
 }
 
 
 
 export default function SearchBar(props: SearchBarProps) {
 
-  const [MyFields, setMyFields] = React.useState<string[]>(props.Fields);
+  const [MyFields, setMyFields] = React.useState<string[]>(props.Fields? props.Fields : []);
 
   React.useEffect(() => {
-    setMyFields(props.Fields);
+    setMyFields(props.Fields? props.Fields : []);
   }
   , [props.Fields]);
 
@@ -28,7 +28,7 @@ export default function SearchBar(props: SearchBarProps) {
     return (
       <Paper
         component="form"
-        sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 300 }}
+        sx={{ p: '2px 4px', display: 'flex', alignItems: 'center'}}
       >
   
         <InputBase
@@ -37,7 +37,7 @@ export default function SearchBar(props: SearchBarProps) {
           inputProps={{ 'aria-label': 'search google maps' }} value=
           
           {
-            MyFields.map((field, index) => (
+            MyFields?.map((field, index) => (
               field + ":" +" "
             ))
           }
