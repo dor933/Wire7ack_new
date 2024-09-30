@@ -33,7 +33,7 @@ export default function SearchBar(props: SearchBarProps) {
   
         <InputBase
           sx={{ ml: 1, flex: 1 }}
-          placeholder={props.SearchType==='Quick Action' ? "Quick Action" : props.SearchType==='Search' ? "Search For Connection" : ""}
+          placeholder={props.SearchType==='Quick Action' ? "Quick Action" : props.SearchType==='Search' ? "Add Filters" : ""}
           inputProps={{ 'aria-label': 'search google maps' }} value=
           
           {

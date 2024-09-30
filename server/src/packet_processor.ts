@@ -42,11 +42,10 @@ export function processCaptureFile(
   // Convert pcapng to JSON using tshark
   const tsharkCommand = `tshark -r "${filePath}" -T json`;
 
-  const execOptions1  = {
-    maxBuffer: 10 * 1024 * 1024, // 10 MB
-  };
+    const maxBuffer:number= 10000000000;
+  
 
-  exec(tsharkCommand,{maxBuffer:10*1024*1024}, (error, stdout, stderr) => {
+  exec(tsharkCommand,{maxBuffer:maxBuffer}, (error, stdout, stderr) => {
     if (error) {
       console.error(`Error processing ${filePath}: ${error.message}`);
       callback();
@@ -67,6 +66,8 @@ export function processCaptureFile(
         console.dir(packetObj, { depth: null, colors: true });
 
         const packetDatawrite = JSON.stringify(packetObj);
+
+        fs.appendFileSync('tshark_output.log', packetDatawrite);
 
 
         const packet = fromWiresharkToPacketObject(packetObj);

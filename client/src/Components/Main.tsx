@@ -8,7 +8,6 @@ import { Packet } from '../shared/Packet';
 
 const Main: React.FC = () => {
   const [streams, setStreams] = useState<Stream[]>([]);
-  const [messages, setMessages] = useState<string[]>([]);
   const { isCaptureStarted, setIsCaptureStarted } = useGlobal();
   const { isConnectionopen, setIsConnectionopen } = useGlobal();
   const streamsRef = useRef<Stream[]>([]);
@@ -54,30 +53,7 @@ const Main: React.FC = () => {
               streamsRef.current.push(stream);
               messagesRef.current.push(event.data);
         }
-        else{
-            let packet = new Packet(
-                Data.PacketID,
-                Data.SourceIP,
-                Data.DestinationIP,
-                Data.Protocol,
-                Data.Payload,
-                new Date(Data.Timestamp),
-                Data.Size,
-                Data.ActivationID,
-                Data.sourceMAC,
-                Data.destinationMAC,
-                Data.sourcePort,
-                Data.DestPort,
-                Data.flags,
-                Data.frameLength,
-                Data.connectionID,
-                Data.Interface_and_protocol
-              );
-        
-              // Accumulate streams and messages
-              messagesRef.current.push(event.data);
-           
-        }
+       
 
       // Create a Stream object
      
@@ -100,7 +76,7 @@ const Main: React.FC = () => {
         //check if the stream is already in the array
 
         streamsRef.current.forEach((stream) => {
-          const index = streams.findIndex((s) => s.Index === stream.Index);
+          const index = streams.findIndex((s)=> s.connectionID===stream.connectionID && s.ActivationID===stream.ActivationID && s.Protocol===stream.Protocol && s.SourceIP===stream.SourceIP && s.DestinationIP===stream.DestinationIP);
           if (index === -1) {
             setStreams((prevStreams) => [...prevStreams, stream]);
           } else {
@@ -117,10 +93,7 @@ const Main: React.FC = () => {
 
 
 
-      if (messagesRef.current.length > 0) {
-        setMessages((prevMessages) => [...prevMessages, ...messagesRef.current]);
-        messagesRef.current = [];
-      }
+  
     }, 1000); // Update every 1 second
 
     // Clean up when the component unmounts
@@ -139,13 +112,7 @@ const Main: React.FC = () => {
       <Sub_Header />
       <Main_Comp rows={streams} setrows={setStreams} />
 
-      <h1>WebSocket Client</h1>
-      <p>Status: {isConnectionopen ? 'Connected' : 'Disconnected'}</p>
-      <ul>
-        {messages.map((message, index) => (
-          <li key={index}>{message}</li>
-        ))}
-      </ul>
+   
     </div>
   );
 };

@@ -10,8 +10,10 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import Connection_Columns from "./Connection_Columns";
 import Table from "./Table";
+import Top_Table_Date from "./Top_Table_Date";
 import { Stream as Stream } from '../shared/Stream';
 import {Checkbox} from "@mui/material";
+import { Visibility } from "@mui/icons-material";
 
 interface Main_CompProps {
     rows:Stream[],
@@ -23,10 +25,22 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
     const newrows=props.rows;
     const [ChosenFields,setChosenFields]=useState<string[]>([]);
+    const [ProtocolFilter, setProtocolFilter] = useState<string>('');
+    const [ValidityFilter, setValidityFilter] = useState<boolean | undefined>(undefined);
+    const [FlagsFilter, setFlagsFilter] = useState<string>('');
+    const [SourceIPFilter, setSourceIPFilter] = useState<string>('');
+    const [DestinationIPFilter, setDestinationIPFilter] = useState<string>('');
+    const [isfiltervisible,setisfiltervisible]=useState<boolean>(false);
+    const [startdatetime,setstartdatetime]=useState<string>('');
+    const [enddatetime,setenddatetime]=useState<string>('');
 
     const handleclearall=()=>{
         props.setrows([]);
     }
+
+    useEffect(()=>{
+
+    },[startdatetime,enddatetime,ProtocolFilter,ValidityFilter,FlagsFilter,SourceIPFilter,DestinationIPFilter])
     
 
 
@@ -98,12 +112,13 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 alignItems:"center",
                 justifyContent:"flex-end",
             }}>
-                <Grid container item xs={4} xl={2} style={{
+                <Grid onClick={()=> {setisfiltervisible(!isfiltervisible)}} container item xs={4} xl={2} style={{
                     display: "flex",
-                    padding: "10px 15px",
+                    padding: "10px 10px",
                     alignItems: "center",
                     borderRadius: "10px",
                     background: "rgba(64, 75, 137, 0.10)",
+                    cursor: "pointer",
                 }}>
 
 
@@ -127,7 +142,9 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                   
 
                 }}>
-                    Add Filter
+                    {
+                        isfiltervisible ? "Hide Filters" : "Show Filters"
+                    }
                     </Grid>
                    
 
@@ -182,11 +199,26 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 
                 
             }}>
-                <Top_Table_Element Data={[]}  ElementName="Date" Icon={<CalendarTodayIcon style={{
+               
+            
+            <Top_Table_Date ElementName="Start Time" Icon={<KeyboardArrowDownIcon style={{
                     color: "#326591",
                     fontSize: "23px",
                     marginTop: "5px",
-                }}/>}/>
+
+                }}/>}
+                
+                SetNewValue={setstartdatetime}
+                />
+
+                    <Top_Table_Date   ElementName="End Time" Icon={<KeyboardArrowDownIcon style={{
+                    color: "#326591",
+                    fontSize: "23px",
+                    marginTop: "5px",
+                }}/>}
+                
+                SetNewValue={setenddatetime}
+                />
                 <Top_Table_Element Data={
                   //list all the unique values of the Protocol field
                     newrows.map((row)=>row.Protocol).filter((value,index,self)=>self.indexOf(value)===index)
@@ -194,7 +226,11 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                     color: "#326591",
                     fontSize: "23px",
                     marginTop: "5px",
-                }}/>}/>
+                }}/>}
+
+                SetNewValue={setProtocolFilter}
+                
+                />
 
 <Top_Table_Element Data={
   
@@ -206,12 +242,10 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                     color: "#326591",
                     fontSize: "23px",
                     marginTop: "5px",
-                }}/>}/>
-                <Top_Table_Element Data={[]}  ElementName="Data Volume" Icon={<KeyboardArrowDownIcon style={{
-                    color: "#326591",
-                    fontSize: "23px",
-                    marginTop: "5px",
-                }}/>}/>
+                }}/>}
+                SetNewValue={setFlagsFilter}
+                />
+            
                 
 
 
@@ -229,7 +263,6 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     fontSize: "16px",
     fontWeight: "400",
     lineHeight: "normal",
-    opacity: "0.6",
     marginTop:"-35px",
     display: "flex",
     flexDirection: "column", // This makes the content flow into two rows
@@ -237,6 +270,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     justifyContent: "flex-start",
     margin: "auto",
     width: "70%", // Ensure the Box spans the full width of the container
+    opacity: isfiltervisible ? "1" : "0",
   }}
 >
   <div    style={{
@@ -365,7 +399,16 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 </Grid>
 
                 </Grid>
-                <Table rows={newrows}/>
+                <Table rows={newrows} ProtocolFilter={ProtocolFilter} 
+                ValidityFilter={ValidityFilter} 
+                FlagsFilter={FlagsFilter} 
+                SourceIPFilter={SourceIPFilter} 
+                DestinationIPFilter={DestinationIPFilter}
+                starttimedate={startdatetime}
+                endtimedate={enddatetime}
+                
+
+                />
                 {/* <Connection_Columns/> */}
 
         </Grid>

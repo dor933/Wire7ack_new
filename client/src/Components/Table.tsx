@@ -9,9 +9,19 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Stream } from '../shared/Stream';
 import { Packet } from '../shared/Packet';
 import '../PaginatedTable.css'; // Custom SCSS for table
+import { Flag } from '@mui/icons-material';
 
 interface PaginatedTableProps {
   rows: Stream[];
+  ProtocolFilter: string;
+  ValidityFilter: boolean | undefined;
+  FlagsFilter: string;
+  SourceIPFilter: string;
+  DestinationIPFilter: string;
+  starttimedate: string;
+  endtimedate: string;
+
+
 }
 
 const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
@@ -22,11 +32,14 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   // Corrected variable name to 'filteredRows'
   const [filteredRows, setFilteredRows] = useState<Stream[]>(props.rows);
 
-  const [ProtocolFilter, setProtocolFilter] = useState<string>('');
-  const [ValidityFilter, setValidityFilter] = useState<boolean | undefined>(undefined);
-  const [ApplicationProtocolFilter, setApplicationProtocolFilter] = useState<string>('');
-  const [SourceIPFilter, setSourceIPFilter] = useState<string>('');
-  const [DestinationIPFilter, setDestinationIPFilter] = useState<string>('');
+  const ProtocolFilter = props.ProtocolFilter;
+  const ValidityFilter = props.ValidityFilter;
+  const FlagsFilter = props.FlagsFilter;
+  const SourceIPFilter = props.SourceIPFilter;
+  const DestinationIPFilter = props.DestinationIPFilter;
+  const starttimedate = new Date(props.starttimedate)
+  const endtimedate = new Date(props.endtimedate)
+  
 
   console.log('Entered PaginatedTable');
   console.log('Props rows:', props.rows);
@@ -38,10 +51,19 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       if (ProtocolFilter !== '' && row.Protocol !== ProtocolFilter) {
         return false;
       }
+
+      if (starttimedate!== null && row.StartTime < starttimedate) {
+        return false;
+      }
+
+      if (endtimedate!== null && row.EndTime > endtimedate) {
+        return false;
+      }
+
       if (ValidityFilter !== undefined && row.validity !== ValidityFilter) {
         return false;
       }
-      if (ApplicationProtocolFilter !== '' && row.ApplicationProtocol !== ApplicationProtocolFilter) {
+      if (FlagsFilter !== '' && row.Packets.map((Packet) => Packet.flags).includes(FlagsFilter) === false) {
         return false;
       }
       if (SourceIPFilter !== '' && row.SourceIP !== SourceIPFilter) {
@@ -53,12 +75,13 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       return true;
     });
     setFilteredRows(tempRows);
+    setPage(0); // Reset page to 0 whenever filters change
   };
 
   // Update filteredRows when filters or props.rows change
   useEffect(() => {
     changeFilteredRows();
-  }, [props.rows, ProtocolFilter, ApplicationProtocolFilter, SourceIPFilter, DestinationIPFilter, ValidityFilter]);
+  }, [props.rows, ProtocolFilter, FlagsFilter, SourceIPFilter, DestinationIPFilter, ValidityFilter]);
 
   const columns: string[] = [
     "ID", "Source IP", "Destination IP",
@@ -86,7 +109,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      <TableContainer sx={{ overflowX: 'auto' }}>
+      <TableContainer>
         <Table stickyHeader aria-label="customized table">
           <TableHead>
             <TableRow className="custom-header-row">

@@ -7,7 +7,7 @@ import { startWebSocketServer } from './websocket_server';
 import { startFileWatcher } from './file_watcher';
 import { WebSocketServer } from 'ws';
 
-const interfaceIndex = '8'; // Replace with your interface index
+const interfaceIndex = '5'; // Replace with your interface index
 const captureDirectory = path.join(__dirname, 'captures');
 const baseFileName = 'capture';
 const numberOfFiles = 10; // Number of files in the ring buffer
@@ -21,17 +21,24 @@ fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
 if (!fs.existsSync(captureDirectory)) {
   fs.mkdirSync(captureDirectory);
 }
+else{
+  // Clear the capture directory
+  fs.readdirSync(captureDirectory).forEach((file) => {
+    fs.unlinkSync(path.join(captureDirectory, file));
+  });
+}
 
 // Start dumpcap with the specified configuration
 const dumpcap = spawn('dumpcap', [
-  '-i',
+  '-i', 
   interfaceIndex,
-  '-b',
-  `files:${numberOfFiles}`,
-  '-b',
-  `filesize:${fileSize}`,
-  '-w',
+  '-b', 
+  `files:${numberOfFiles}`, 
+  '-b', 
+  `filesize:${fileSize}`, 
+  '-w', 
   path.join(captureDirectory, `${baseFileName}.pcapng`),
+   // Example: Filter packets with destination IP 192.168.1.100
 ]);
 
 dumpcap.on('error', (error: Error) => {
