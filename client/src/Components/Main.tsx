@@ -4,10 +4,6 @@ import Sub_Header from './Sub_Header';
 import Main_Comp from './Main_Comp';
 import { useGlobal } from './Context/Global';
 import { Stream } from '../shared/Stream';
-import { Packet } from '../shared/Packet';
-
-
-
 
 const Main: React.FC = () => {
   const [streams, setStreams] = useState<Stream[]>([]);
@@ -21,43 +17,29 @@ const Main: React.FC = () => {
     socket.onopen = () => {
       console.log('Connected to server');
       setIsConnectionopen(true);
-
-      // Send a message to the server
-      socket.send('Hello, server!');
     };
 
     socket.onmessage = (event: MessageEvent<string>) => {
-      // Parse the incoming message
-      let Data = JSON.parse(event.data);
+      const Data = JSON.parse(event.data);
 
-      
-      //check if its stream object
+      const stream = new Stream(
+        Data.Index,
+        Data.connectionID,
+        Data.SourceIP,
+        Data.DestinationIP,
+        Data.ActivationID,
+        Data.Packets,
+        Data.Protocol,
+        Data.validity,
+        new Date(Data.StartTime),
+        new Date(Data.EndTime),
+        Data.Duration,
+        Data.PacketCount,
+        BigInt(Data.DataVolume),
+        Data.ApplicationProtocol
+      );
 
-        if(Data.hasOwnProperty('Packets')){
-            let stream = new Stream(
-                Data.Index,
-                Data.connectionID,
-                Data.SourceIP,
-                Data.DestinationIP,
-                Data.ActivationID,
-                Data.Packets,
-                Data.Protocol,
-                Data.validity,
-                new Date(Data.StartTime),
-                new Date(Data.EndTime),
-                Data.Duration,
-                Data.PacketCount,
-                BigInt(Data.DataVolume),
-                Data.ApplicationProtocol
-              );
-        
-              // Accumulate streams and messages
-              streamsRef.current.push(stream);
-        }
-       
-
-      // Create a Stream object
-     
+      streamsRef.current.push(stream);
     };
 
     socket.onclose = () => {
@@ -72,29 +54,37 @@ const Main: React.FC = () => {
     // Set up interval to update state every second
     const interval = setInterval(() => {
       if (streamsRef.current.length > 0) {
-        console.log('this is the streams array',streams)
+        setStreams((prevStreams) => {
+          let newStreams = [...prevStreams];
 
-        //check if the stream is already in the array
+          streamsRef.current.forEach((stream) => {
+            const index = newStreams.findIndex(
+              (s) =>
+                s.connectionID === stream.connectionID &&
+                s.ActivationID === stream.ActivationID &&
+                s.Protocol === stream.Protocol &&
+                s.SourceIP === stream.SourceIP &&
+                s.DestinationIP === stream.DestinationIP
+            );
 
-        streamsRef.current.forEach((stream) => {
-          const index = streams.findIndex((s)=> s.connectionID===stream.connectionID && s.ActivationID===stream.ActivationID && s.Protocol===stream.Protocol && s.SourceIP===stream.SourceIP && s.DestinationIP===stream.DestinationIP);
-          if (index === -1) {
-            setStreams((prevStreams) => [...prevStreams, stream]);
-          } else {
-            const newStreams = [...streams];
-            newStreams[index] = stream;
-            setStreams(newStreams);
+            if (index === -1) {
+              newStreams.push(stream);
+            } else {
+              newStreams[index] = stream;
+            }
+          });
+
+          streamsRef.current = [];
+
+          // Limit the number of streams stored to last 100
+
+          if (newStreams.length > 200) {
+            newStreams = newStreams.slice(newStreams.length - 200);
           }
+
+          return newStreams;
         });
-        streamsRef.current = [];
-
-
-       
       }
-
-
-
-  
     }, 1000); // Update every 1 second
 
     // Clean up when the component unmounts
@@ -104,16 +94,11 @@ const Main: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-  }, [streams]);
-
   return (
     <div>
       <Header />
       <Sub_Header />
       <Main_Comp rows={streams} setrows={setStreams} />
-
-   
     </div>
   );
 };

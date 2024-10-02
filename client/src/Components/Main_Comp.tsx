@@ -24,7 +24,7 @@ interface Main_CompProps {
 const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
     const newrows=props.rows;
-    const [ChosenFields,setChosenFields]=useState<string[]>([]);
+    const [ChosenFields,setChosenFields]=useState<Record <string,string[]>>({});
     const [ProtocolFilter, setProtocolFilter] = useState<string>('');
     const [ValidityFilter, setValidityFilter] = useState<boolean | undefined>(undefined);
     const [FlagsFilter, setFlagsFilter] = useState<string>('');
@@ -286,11 +286,15 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
         onChange={(e)=>{
     
             if(e.target.checked){
-            setChosenFields([...ChosenFields,"Source IP"]);
+            setChosenFields({...ChosenFields,"Source IP":[]});
             }
             else{
-            setChosenFields(ChosenFields.filter((field)=>field!=="Source IP"));
-            }
+              setChosenFields((prevFields) => {
+                const { "Source IP": _, ...rest } = prevFields;
+                return rest;
+
+              });           
+             }
         }
     }
 
@@ -303,10 +307,16 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
       id="dest.ip"
       onChange={(e)=>{
         if(e.target.checked){
-          setChosenFields([...ChosenFields,"Destination IP"]);
+          setChosenFields({
+            ...ChosenFields,
+            "Destination IP": [] // Add "Destination IP" with an initial empty value
+          });
         }
         else{
-          setChosenFields(ChosenFields.filter((field)=>field!=="Destination IP"));
+          setChosenFields((prevFields:Record<string,string[]>) => {
+  const { "Destination IP": _, ...rest } = prevFields;
+  return rest;
+}); 
         }
       }
     }
@@ -330,14 +340,23 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
       id="validity"
       onChange={(e)=>{
         if(e.target.checked){
-          setChosenFields([...ChosenFields,"Validity"]);
-        }
+          setChosenFields({
+            ...ChosenFields,
+            "Validity": [] // Add "Destination IP" with an initial empty value
+          });
+        } 
         else{
-          setChosenFields(ChosenFields.filter((field)=>field!=="Validity"));
+          setChosenFields((prevFields:Record<string,string[]>) => {
+  const { "Validity": _, ...rest } = prevFields;
+  return rest;
+          });
         }
+      
+      }
+      
 
       }
-    }
+    
       inputProps={{ "aria-label": "secondary checkbox" }}
     />
     <span style={{ color: "#304C57",fontWeight: "400",minWidth:"120px",flexGrow:1 }}>Protocol</span>
@@ -346,14 +365,19 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
       id="protocol"
         onChange={(e)=>{
             if(e.target.checked){
-            setChosenFields([...ChosenFields,"Protocol"]);
+            setChosenFields({...ChosenFields,"Protocol":[]});
             }
             else{
-            setChosenFields(ChosenFields.filter((field)=>field!=="Protocol"));
+              setChosenFields((prevFields) => {
+                const { "Protocol": _, ...rest } = prevFields;
+                return rest;
+
+              });           
+             }
             }
     
         }
-    }
+    
       color="primary"
       inputProps={{ "aria-label": "secondary checkbox" }}
     />

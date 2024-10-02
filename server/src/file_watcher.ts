@@ -92,14 +92,19 @@ function handleFile(
       processedFiles.add(filePath);
       processCaptureFile(filePath,ws,Streams, () => {
         // After processing, delete the file
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.error(`Error deleting file ${filePath}: ${err.message}`);
-          } else {
-            console.log(`Deleted file: ${filePath}`);
-            processedFiles.delete(filePath);
-          }
-        });
+
+        setInterval(() => {
+          fs.unlink(filePath, (err) => {
+            if (err) {
+              console.error(`Error deleting file ${filePath}: ${err.message}`);
+            } else {
+              console.log(`Deleted file: ${filePath}`);
+              processedFiles.delete(filePath);
+            }
+          });
+          
+        }, 1000);
+    
       });
     }
   });

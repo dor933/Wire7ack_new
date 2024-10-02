@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Packet = void 0;
 class Packet {
-    constructor(PacketID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, ActivationID, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol) {
+    constructor(PacketID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, ActivationID, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, Packet_indexer) {
         this.PacketID = PacketID;
         this.SourceIP = SourceIP;
         this.DestinationIP = DestinationIP;
@@ -19,6 +19,7 @@ class Packet {
         this.frameLength = frameLength;
         this.connectionID = connectionID;
         this.Interface_and_protocol = Interface_and_protocol;
+        this.Packet_indexer = Packet_indexer;
     }
 }
 exports.Packet = Packet;

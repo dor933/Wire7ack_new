@@ -16,6 +16,7 @@ export class Packet {
       public frameLength: number,
       public connectionID: number,
       public Interface_and_protocol: string,
+      public Packet_indexer: number,
     ) {}
   }
   

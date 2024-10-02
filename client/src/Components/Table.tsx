@@ -164,6 +164,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                           <Table size="small" aria-label="packets">
                             <TableHead>
                               <TableRow>
+                              <TableCell>Packet Indexer</TableCell>  
                                 <TableCell>Packet ID</TableCell>
                                 <TableCell>Size (Bytes)</TableCell>
                                 <TableCell>Source IP</TableCell>
@@ -185,6 +186,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                             <TableBody>
                               {row.Packets.map((packet) => (
                                 <TableRow key={packet.PacketID}>
+                                  <TableCell>{packet.Packet_indexer}</TableCell>
                                   <TableCell>{packet.PacketID}</TableCell>
                                   <TableCell>{packet.Size}</TableCell>
                                   <TableCell>{packet.SourceIP}</TableCell>

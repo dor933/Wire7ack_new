@@ -7,6 +7,8 @@ import { Stream } from './shared/Stream';
 import fs from 'fs';
 import JSONBig from 'json-bigint';
 
+let indexer=0;
+
  function Create_Stream(Index:number,connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
     return new Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
 
@@ -14,11 +16,13 @@ function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean|St
 
     let Relevant_stream = Streams.find(stream => stream.connectionID === packet.connectionID && stream.ActivationID === packet.ActivationID && stream.Protocol === packet.Protocol);
     if(Relevant_stream === undefined){
+      fs.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' not found in any stream' + '\n');
         console.log("Stream not found");
         return false;
     }
     Relevant_stream.Packets.push(packet);
-    return true;
+    fs.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' found in stream ' + Relevant_stream.Index + '\n');
+    return Relevant_stream;
 
 }
 
@@ -62,19 +66,24 @@ export function processCaptureFile(
 
 
       // Process each packet
+
+
       packetsArray.forEach( (packetObj: any) => {
-        console.dir(packetObj, { depth: null, colors: true });
 
-        const packetDatawrite = JSON.stringify(packetObj);
 
-        fs.appendFileSync('tshark_output.log', packetDatawrite);
+
+             
+
+
+
 
 
         const packet = fromWiresharkToPacketObject(packetObj);
+        fs.appendFileSync('tshark_output.log', packet.PacketID + packet.SourceIP+ packet.DestinationIP+ packet.Protocol+ packet.connectionID + '\n');
+
 
         // Process the packet (e.g., assign to streams)
 
-            console.log('entered to check stream');
         
         let assign_to_stream=Assign_Packet_To_Stream(packet,Streams);
         if(!assign_to_stream){
@@ -85,7 +94,6 @@ export function processCaptureFile(
             if(Streams.length>1){
                   Check_Stream_Validity(Streams[Streams.length-2]);
 
-                 console.log('entered to send stream');
                  let streamData =Streams[Streams.length-2]
                  streamData.DataVolume= streamData.DataVolume.toString();
                  let mystream=JSON.stringify(streamData);
@@ -109,6 +117,7 @@ export function processCaptureFile(
 
           assign_to_stream.DataVolume= assign_to_stream.DataVolume.toString();
           let mystream=JSON.stringify(assign_to_stream);
+
           
 
         ws.clients.forEach((client: WebSocket) => {
@@ -121,7 +130,6 @@ export function processCaptureFile(
 
       
 
-   
 
       }
 
@@ -131,12 +139,15 @@ export function processCaptureFile(
     
 
       console.log(`Finished processing file: ${filePath}`);
+      Streams=[];
       callback();
     } catch (parseError:any) {
       console.error(`Error parsing JSON from ${filePath}: ${parseError.message}`);
       callback();
     }
   });
+
+
 }
 
 // Function to convert Wireshark JSON packet to your Packet object
@@ -210,6 +221,7 @@ function fromWiresharkToPacketObject(packetObj: any): Packet {
     Size: size,
     Interface_and_protocol: interface_and_protocol,
     DestPort: DestPort,
+    Packet_indexer: indexer++,
   };
 
   return packet;

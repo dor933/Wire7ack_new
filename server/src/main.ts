@@ -33,7 +33,7 @@ const baseFileName = 'capture';
 const numberOfFiles = 10; // Number of files in the ring buffer
 
 console.log('this is capture directory', captureDirectory);
-const fileSize = 10000; // Size of each file in kilobytes (100 MB)
+const fileSize = 5000; // Size of each file in kilobytes (100 MB)
 
 fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
 
@@ -50,15 +50,16 @@ else{
 
 // Start dumpcap with the specified configuration
 const dumpcap = spawn('dumpcap', [
-  '-i', 
+  '-i',
   interfaceIndex,
-  '-b', 
-  `files:${numberOfFiles}`, 
-  '-b', 
-  `filesize:${fileSize}`, 
-  '-w', 
+  '-b',
+  `files:${numberOfFiles}`,
+  '-b',
+  `filesize:${fileSize}`,
+  '-f',
+  'src host 10.0.0.10',  // Correct capture filter syntax
+  '-w',
   path.join(captureDirectory, `${baseFileName}.pcapng`),
-   // Example: Filter packets with destination IP 192.168.1.100
 ]);
 
 dumpcap.on('error', (error: Error) => {

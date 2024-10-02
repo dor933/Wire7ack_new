@@ -42,4 +42,32 @@ declare module 'json-bigint' {
   
     export = cors;
   }
+
+
+  declare module 'stream-json' {
+    import { Transform } from 'stream';
   
+    interface ParserOptions {
+      packValues?: boolean;
+      packKeys?: boolean;
+      packStrings?: boolean;
+      packNumbers?: boolean;
+      streamKeys?: boolean;
+      streamNumbers?: boolean;
+      streamStrings?: boolean;
+      streamValues?: boolean;
+      jsonStreaming?: boolean;
+    }
+  
+    export function parser(options?: ParserOptions): Transform;
+  }
+  
+  declare module 'stream-json/streamers/StreamArray' {
+    import { Transform } from 'stream';
+  
+    interface StreamArrayOptions {
+      objectFilter?: (value: any) => boolean;
+    }
+  
+    export function streamArray(options?: StreamArrayOptions): Transform;
+  }

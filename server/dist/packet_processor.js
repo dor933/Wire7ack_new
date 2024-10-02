@@ -10,17 +10,20 @@ const ws_1 = require("ws");
 const Stream_1 = require("./shared/Stream");
 const fs_1 = __importDefault(require("fs"));
 const json_bigint_1 = __importDefault(require("json-bigint"));
+let indexer = 0;
 function Create_Stream(Index, connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
     return new Stream_1.Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
 }
 function Assign_Packet_To_Stream(packet, Streams) {
     let Relevant_stream = Streams.find(stream => stream.connectionID === packet.connectionID && stream.ActivationID === packet.ActivationID && stream.Protocol === packet.Protocol);
     if (Relevant_stream === undefined) {
+        fs_1.default.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' not found in any stream' + '\n');
         console.log("Stream not found");
         return false;
     }
     Relevant_stream.Packets.push(packet);
-    return true;
+    fs_1.default.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' found in stream ' + Relevant_stream.Index + '\n');
+    return Relevant_stream;
 }
 //create a function that runs through the stream object on its packets array and if there is at least one error packet, it will set the validity of the stream to false
 async function Check_Stream_Validity(stream) {
@@ -45,12 +48,9 @@ function processCaptureFile(filePath, ws, Streams, callback) {
             const packetsArray = JSONbigNative.parse(stdout);
             // Process each packet
             packetsArray.forEach((packetObj) => {
-                console.dir(packetObj, { depth: null, colors: true });
-                const packetDatawrite = JSON.stringify(packetObj);
-                fs_1.default.appendFileSync('tshark_output.log', packetDatawrite);
                 const packet = fromWiresharkToPacketObject(packetObj);
+                fs_1.default.appendFileSync('tshark_output.log', packet.PacketID + packet.SourceIP + packet.DestinationIP + packet.Protocol + packet.connectionID + '\n');
                 // Process the packet (e.g., assign to streams)
-                console.log('entered to check stream');
                 let assign_to_stream = Assign_Packet_To_Stream(packet, Streams);
                 if (!assign_to_stream) {
                     let new_stream = Create_Stream(Streams.length + 1, packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
@@ -58,7 +58,6 @@ function processCaptureFile(filePath, ws, Streams, callback) {
                     Streams.push(new_stream);
                     if (Streams.length > 1) {
                         Check_Stream_Validity(Streams[Streams.length - 2]);
-                        console.log('entered to send stream');
                         let streamData = Streams[Streams.length - 2];
                         streamData.DataVolume = streamData.DataVolume.toString();
                         let mystream = JSON.stringify(streamData);
@@ -80,6 +79,7 @@ function processCaptureFile(filePath, ws, Streams, callback) {
                 }
             });
             console.log(`Finished processing file: ${filePath}`);
+            Streams = [];
             callback();
         }
         catch (parseError) {
@@ -157,6 +157,7 @@ function fromWiresharkToPacketObject(packetObj) {
         Size: size,
         Interface_and_protocol: interface_and_protocol,
         DestPort: DestPort,
+        Packet_indexer: indexer++,
     };
     return packet;
 }
