@@ -33,10 +33,10 @@ const InputBase_1 = __importDefault(require("@mui/material/InputBase"));
 const IconButton_1 = __importDefault(require("@mui/material/IconButton"));
 const Search_1 = __importDefault(require("@mui/icons-material/Search"));
 function SearchBar(props) {
-    const [MyFields, setMyFields] = React.useState(props.Fields);
+    const [MyFields, setMyFields] = React.useState(props.Fields ? props.Fields : []);
     React.useEffect(() => {
-        setMyFields(props.Fields);
+        setMyFields(props.Fields ? props.Fields : []);
     }, [props.Fields]);
-    return ((0, jsx_runtime_1.jsxs)(Paper_1.default, { component: "form", sx: { p: '2px 4px', display: 'flex', alignItems: 'center', width: 300 }, children: [(0, jsx_runtime_1.jsx)(InputBase_1.default, { sx: { ml: 1, flex: 1 }, placeholder: props.SearchType === 'Quick Action' ? "Quick Action" : props.SearchType === 'Search' ? "Search For Connection" : "", inputProps: { 'aria-label': 'search google maps' }, value: MyFields.map((field, index) => (field + ":" + " ")) }), (0, jsx_runtime_1.jsx)(IconButton_1.default, { type: "button", sx: { p: '10px' }, "aria-label": "search", children: (0, jsx_runtime_1.jsx)(Search_1.default, {}) })] }));
+    return ((0, jsx_runtime_1.jsxs)(Paper_1.default, { component: "form", sx: { p: '2px 4px', display: 'flex', alignItems: 'center' }, children: [(0, jsx_runtime_1.jsx)(InputBase_1.default, { sx: { ml: 1, flex: 1 }, placeholder: props.SearchType === 'Quick Action' ? "Quick Action" : props.SearchType === 'Search' ? "Add Filters" : "", inputProps: { 'aria-label': 'search google maps' }, value: MyFields === null || MyFields === void 0 ? void 0 : MyFields.map((field, index) => (field + ":" + " ")) }), (0, jsx_runtime_1.jsx)(IconButton_1.default, { type: "button", sx: { p: '10px' }, "aria-label": "search", children: (0, jsx_runtime_1.jsx)(Search_1.default, {}) })] }));
 }
 exports.default = SearchBar;

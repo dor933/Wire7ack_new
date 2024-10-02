@@ -1,6 +1,6 @@
 import "../App.css";
 import React, { useEffect, useState } from 'react';
-import { Grid,Box } from "@mui/material";
+import { Grid,Box,List, ListItem,ListItemButton,ListItemText } from "@mui/material";
 import Packet_Views from "./Packets_Views";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Main_Actions from "./Main_Actions";
@@ -13,6 +13,7 @@ const Sub_Header: React.FC = () => {
     const [View, setView] = useState<string>("All Connections");
 
     return (
+        <>
         <Grid container style={{
             display: "flex",
             width: "95%",
@@ -63,7 +64,24 @@ const Sub_Header: React.FC = () => {
                 
             
         </Grid>
-   
+
+         <Grid container style={{
+    display: "flex",
+    width: "95%",
+    padding: "10px 30px",
+    justifyContent: "space-between",
+    alignItems: "center",
+    margin: "0 auto",
+           }}>
+        
+     
+
+    
+</Grid>
+    
+    </>
+
+      
     );
 }
 

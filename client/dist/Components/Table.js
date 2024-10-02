@@ -39,11 +39,13 @@ const PaginatedTable = (props) => {
     const [openRows, setOpenRows] = (0, react_1.useState)({}); // Track open rows
     // Corrected variable name to 'filteredRows'
     const [filteredRows, setFilteredRows] = (0, react_1.useState)(props.rows);
-    const [ProtocolFilter, setProtocolFilter] = (0, react_1.useState)('');
-    const [ValidityFilter, setValidityFilter] = (0, react_1.useState)(undefined);
-    const [ApplicationProtocolFilter, setApplicationProtocolFilter] = (0, react_1.useState)('');
-    const [SourceIPFilter, setSourceIPFilter] = (0, react_1.useState)('');
-    const [DestinationIPFilter, setDestinationIPFilter] = (0, react_1.useState)('');
+    const ProtocolFilter = props.ProtocolFilter;
+    const ValidityFilter = props.ValidityFilter;
+    const FlagsFilter = props.FlagsFilter;
+    const SourceIPFilter = props.SourceIPFilter;
+    const DestinationIPFilter = props.DestinationIPFilter;
+    const starttimedate = new Date(props.starttimedate);
+    const endtimedate = new Date(props.endtimedate);
     console.log('Entered PaginatedTable');
     console.log('Props rows:', props.rows);
     console.log('Filtered rows:', filteredRows);
@@ -53,10 +55,16 @@ const PaginatedTable = (props) => {
             if (ProtocolFilter !== '' && row.Protocol !== ProtocolFilter) {
                 return false;
             }
+            if (starttimedate !== null && row.StartTime < starttimedate) {
+                return false;
+            }
+            if (endtimedate !== null && row.EndTime > endtimedate) {
+                return false;
+            }
             if (ValidityFilter !== undefined && row.validity !== ValidityFilter) {
                 return false;
             }
-            if (ApplicationProtocolFilter !== '' && row.ApplicationProtocol !== ApplicationProtocolFilter) {
+            if (FlagsFilter !== '' && row.Packets.map((Packet) => Packet.flags).includes(FlagsFilter) === false) {
                 return false;
             }
             if (SourceIPFilter !== '' && row.SourceIP !== SourceIPFilter) {
@@ -68,11 +76,12 @@ const PaginatedTable = (props) => {
             return true;
         });
         setFilteredRows(tempRows);
+        setPage(0); // Reset page to 0 whenever filters change
     };
     // Update filteredRows when filters or props.rows change
     (0, react_1.useEffect)(() => {
         changeFilteredRows();
-    }, [props.rows, ProtocolFilter, ApplicationProtocolFilter, SourceIPFilter, DestinationIPFilter, ValidityFilter]);
+    }, [props.rows, ProtocolFilter, FlagsFilter, SourceIPFilter, DestinationIPFilter, ValidityFilter]);
     const columns = [
         "ID", "Source IP", "Destination IP",
         "Protocol", "Validity", "Start Time", "Duration", "Data Volume"
@@ -91,7 +100,7 @@ const PaginatedTable = (props) => {
         setOpenRows(prevState => (Object.assign(Object.assign({}, prevState), { [id]: !prevState[id] // Toggle the open/close state of the row
          })));
     };
-    return ((0, jsx_runtime_1.jsxs)(material_1.Paper, { sx: { width: '100%', overflow: 'hidden' }, children: [(0, jsx_runtime_1.jsx)(material_1.TableContainer, { sx: { overflowX: 'auto' }, children: (0, jsx_runtime_1.jsxs)(material_1.Table, { stickyHeader: true, "aria-label": "customized table", children: [(0, jsx_runtime_1.jsx)(material_1.TableHead, { children: (0, jsx_runtime_1.jsxs)(material_1.TableRow, { className: "custom-header-row", children: [(0, jsx_runtime_1.jsx)(material_1.TableCell, {}), columns.map((column, index) => ((0, jsx_runtime_1.jsx)(material_1.TableCell, { children: (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }, children: [(0, jsx_runtime_1.jsx)("span", { children: column }), (0, jsx_runtime_1.jsx)(ImportExport_1.default, { style: {
+    return ((0, jsx_runtime_1.jsxs)(material_1.Paper, { sx: { width: '100%', overflow: 'hidden' }, children: [(0, jsx_runtime_1.jsx)(material_1.TableContainer, { children: (0, jsx_runtime_1.jsxs)(material_1.Table, { stickyHeader: true, "aria-label": "customized table", children: [(0, jsx_runtime_1.jsx)(material_1.TableHead, { children: (0, jsx_runtime_1.jsxs)(material_1.TableRow, { className: "custom-header-row", children: [(0, jsx_runtime_1.jsx)(material_1.TableCell, {}), columns.map((column, index) => ((0, jsx_runtime_1.jsx)(material_1.TableCell, { children: (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }, children: [(0, jsx_runtime_1.jsx)("span", { children: column }), (0, jsx_runtime_1.jsx)(ImportExport_1.default, { style: {
                                                         color: "#304C57",
                                                         fontSize: "16px",
                                                         marginLeft: 'auto' // Ensure icon stays to the far right

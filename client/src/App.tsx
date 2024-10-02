@@ -35,7 +35,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<Login isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/main" element={<Main  />} />
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to="/main" />} />
         </Routes>
 
       </Router>

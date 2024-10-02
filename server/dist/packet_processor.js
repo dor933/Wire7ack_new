@@ -8,6 +8,7 @@ exports.processCaptureFile = processCaptureFile;
 const child_process_1 = require("child_process");
 const ws_1 = require("ws");
 const Stream_1 = require("./shared/Stream");
+const fs_1 = __importDefault(require("fs"));
 const json_bigint_1 = __importDefault(require("json-bigint"));
 function Create_Stream(Index, connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
     return new Stream_1.Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
@@ -32,10 +33,8 @@ function processCaptureFile(filePath, ws, Streams, callback) {
     console.log(`Processing file: ${filePath}`);
     // Convert pcapng to JSON using tshark
     const tsharkCommand = `tshark -r "${filePath}" -T json`;
-    const execOptions1 = {
-        maxBuffer: 10 * 1024 * 1024, // 10 MB
-    };
-    (0, child_process_1.exec)(tsharkCommand, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
+    const maxBuffer = 10000000000;
+    (0, child_process_1.exec)(tsharkCommand, { maxBuffer: maxBuffer }, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error processing ${filePath}: ${error.message}`);
             callback();
@@ -48,6 +47,7 @@ function processCaptureFile(filePath, ws, Streams, callback) {
             packetsArray.forEach((packetObj) => {
                 console.dir(packetObj, { depth: null, colors: true });
                 const packetDatawrite = JSON.stringify(packetObj);
+                fs_1.default.appendFileSync('tshark_output.log', packetDatawrite);
                 const packet = fromWiresharkToPacketObject(packetObj);
                 // Process the packet (e.g., assign to streams)
                 console.log('entered to check stream');

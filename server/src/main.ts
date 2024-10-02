@@ -5,10 +5,29 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { startWebSocketServer } from './websocket_server';
 import { startFileWatcher } from './file_watcher';
+import { getTsharkInterfaces } from './Functions';
 import { WebSocketServer } from 'ws';
+import { wsServer } from './server';
 
-export const startMainProcess = () => {
-const interfaceIndex = '5'; // Replace with your interface index
+export const startMainProcess = async (interfacename:string) => {
+
+  const tsharkInterfaces = await getTsharkInterfaces();
+  console.log('this is tshark interfaces', tsharkInterfaces);
+  console.log('this is interface name', interfacename);
+  //find the interface index
+  let interfaceIndex = '';
+
+  for (let i = 0; i < tsharkInterfaces.length; i++) {
+    if (tsharkInterfaces[i].includes(interfacename)) {
+      interfaceIndex = tsharkInterfaces[i].split(' ')[0];
+      interfaceIndex = interfaceIndex.replace('.', '');
+      break;
+    }
+  }
+
+  
+
+  console.log('this is interface index', interfaceIndex);
 const captureDirectory = path.join(__dirname, 'captures');
 const baseFileName = 'capture';
 const numberOfFiles = 10; // Number of files in the ring buffer
@@ -51,7 +70,6 @@ dumpcap.on('close', (code: number) => {
 });
 
 // Start the WebSocket server
-const wsServer: WebSocketServer = startWebSocketServer();
 
 // Start the file watcher and pass the WebSocket server to it
 startFileWatcher(captureDirectory, wsServer);

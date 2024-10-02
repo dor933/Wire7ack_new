@@ -24,40 +24,64 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.startMainProcess = void 0;
 const child_process_1 = require("child_process");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
-const websocket_server_1 = require("./websocket_server");
 const file_watcher_1 = require("./file_watcher");
-const interfaceIndex = '8'; // Replace with your interface index
-const captureDirectory = path.join(__dirname, 'captures');
-const baseFileName = 'capture';
-const numberOfFiles = 10; // Number of files in the ring buffer
-console.log('this is capture directory', captureDirectory);
-const fileSize = 100; // Size of each file in kilobytes (100 MB)
-fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
-// Ensure the capture directory exists
-if (!fs.existsSync(captureDirectory)) {
-    fs.mkdirSync(captureDirectory);
-}
-// Start dumpcap with the specified configuration
-const dumpcap = (0, child_process_1.spawn)('dumpcap', [
-    '-i',
-    interfaceIndex,
-    '-b',
-    `files:${numberOfFiles}`,
-    '-b',
-    `filesize:${fileSize}`,
-    '-w',
-    path.join(captureDirectory, `${baseFileName}.pcapng`),
-]);
-dumpcap.on('error', (error) => {
-    console.error(`dumpcap error: ${error.message}`);
-});
-dumpcap.on('close', (code) => {
-    console.log(`dumpcap process exited with code ${code}`);
-});
-// Start the WebSocket server
-const wsServer = (0, websocket_server_1.startWebSocketServer)();
-// Start the file watcher and pass the WebSocket server to it
-(0, file_watcher_1.startFileWatcher)(captureDirectory, wsServer);
+const Functions_1 = require("./Functions");
+const server_1 = require("./server");
+const startMainProcess = async (interfacename) => {
+    const tsharkInterfaces = await (0, Functions_1.getTsharkInterfaces)();
+    console.log('this is tshark interfaces', tsharkInterfaces);
+    console.log('this is interface name', interfacename);
+    //find the interface index
+    let interfaceIndex = '';
+    for (let i = 0; i < tsharkInterfaces.length; i++) {
+        if (tsharkInterfaces[i].includes(interfacename)) {
+            interfaceIndex = tsharkInterfaces[i].split(' ')[0];
+            interfaceIndex = interfaceIndex.replace('.', '');
+            break;
+        }
+    }
+    console.log('this is interface index', interfaceIndex);
+    const captureDirectory = path.join(__dirname, 'captures');
+    const baseFileName = 'capture';
+    const numberOfFiles = 10; // Number of files in the ring buffer
+    console.log('this is capture directory', captureDirectory);
+    const fileSize = 10000; // Size of each file in kilobytes (100 MB)
+    fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
+    // Ensure the capture directory exists
+    if (!fs.existsSync(captureDirectory)) {
+        fs.mkdirSync(captureDirectory);
+    }
+    else {
+        // Clear the capture directory
+        fs.readdirSync(captureDirectory).forEach((file) => {
+            fs.unlinkSync(path.join(captureDirectory, file));
+        });
+    }
+    // Start dumpcap with the specified configuration
+    const dumpcap = (0, child_process_1.spawn)('dumpcap', [
+        '-i',
+        interfaceIndex,
+        '-b',
+        `files:${numberOfFiles}`,
+        '-b',
+        `filesize:${fileSize}`,
+        '-w',
+        path.join(captureDirectory, `${baseFileName}.pcapng`),
+        // Example: Filter packets with destination IP 192.168.1.100
+    ]);
+    dumpcap.on('error', (error) => {
+        console.error(`dumpcap error: ${error.message}`);
+    });
+    dumpcap.on('close', (code) => {
+        console.log(`dumpcap process exited with code ${code}`);
+    });
+    // Start the WebSocket server
+    // Start the file watcher and pass the WebSocket server to it
+    (0, file_watcher_1.startFileWatcher)(captureDirectory, server_1.wsServer);
+    return "Main process started successfully";
+};
+exports.startMainProcess = startMainProcess;

@@ -5,15 +5,24 @@ import { Grid,Box } from "@mui/material";
 import SearchBar from "./SearchBar";
 import PersonIcon from '@mui/icons-material/Person';
 import Logo from "../assets/Logo.png";
-import { useGlobal } from "./Context/Global";
-
+import Top_Table_Element from "./Top_Table_Element";
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import axios from 'axios';
+import {useGlobal} from "./Context/Global";
 
 
 
 const Header: React.FC = () => {
 
 
+
+
     const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+    const [Interfaces, setInterfaces] = useState<string[]>(['Ethernet','Wi-Fi','Bluetooth','USB','NFC','Cellular','VPN','Other']);
+    const {chosenInterface,setChosenInterface} = useGlobal();
+    const {isConnectionopen,setIsConnectionopen} = useGlobal();
+
+
 
     useEffect(() => {
       const handleOnline = () => setIsOnline(true);
@@ -21,6 +30,18 @@ const Header: React.FC = () => {
   
       window.addEventListener('online', handleOnline);
       window.addEventListener('offline', handleOffline);
+
+      axios.get('http://localhost:8000/api/preconfig/interfaces').then((response) => {
+        
+        const extractedNames = response.data.map((device:string) => {
+            const match = device.match(/\(([^)]+)\)/);  
+            return match ? match[1] : device.trim(); 
+          });
+
+        setInterfaces(extractedNames);
+    }).catch((error) => {
+        console.log(error);
+    });
   
       // Cleanup listeners on component unmount
       return () => {
@@ -34,7 +55,10 @@ const Header: React.FC = () => {
 
 
     return (
-       <Grid container style={{display: "flex",
+
+         <>
+        
+        <Grid container style={{display: "flex",
         width:"100%",
         padding: "10px 30px",
         justifyContent: "space-between",
@@ -236,7 +260,88 @@ const Header: React.FC = () => {
                     </Grid>
 
               </Grid>
+                   <Grid container style={{display: "flex",
+                    width:"100%",
+                    padding: "25px 30px",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop:'-30px',
+                    marginLeft:"10px",
+                    
+                          }}>
+
+<Top_Table_Element Data={
+  
+
+    Interfaces.map((interfaceName) => {
+        return interfaceName;
+    })
+    
+
+}  ElementName="Interfaces" Icon={<KeyboardArrowDownIcon style={{
+                    color: "#326591",
+                    fontSize: "23px",
+                    marginTop: "5px",
+                }}/>}
+                SetNewValue={setChosenInterface}
+                />
+
+                  <Grid container item xs={6} style={{display: "flex",alignItems: "center",
+                  justifyContent:'center'
+                  
+                  }}>
+
+                    <Box style={{
+                        display:"inline-flex",
+                        padding: "12px 16px",
+                        borderRadius: "10px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        background: isConnectionopen? "#1DD66A":"#D61D1D",
+                        gap:'3px'
+                    }}>
+                            <span style={{
+                        color: "var(--text-icon-primary-white, #FFF)",
+                        fontFamily: "Roboto",
+                        fontSize: "14px",
+                        fontStyle: "normal",
+                        fontWeight:"600",
+                        lineHeight:'16px',
+                        letterSpacing:'0.1px',
+                        textTransform:'capitalize'                    
+                            }}>
+                            Status:
+                        </span>
+                        <span style={{
+                                  color: "var(--text-icon-primary-white, #FFF)",
+                                  fontFamily: "Roboto",
+                                  fontSize: "14px",
+                                  fontStyle: "normal",
+                                  fontWeight:"600",
+                                  lineHeight:'16px',
+                                  letterSpacing:'0.1px',
+                                  textTransform:'capitalize'        
+                        }}>
+                            {
+                                isConnectionopen? "Connected" : "Disconnected"
+                            }
+                        </span>
+
+                    </Box>
+                 
+                    
+               
+                  </Grid>
+
+                            </Grid>
+                            
+
+
+
+                    </>
+                            
     );
+    
 };
 
 

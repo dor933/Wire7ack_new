@@ -3,7 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
 require("../App.css");
 const material_1 = require("@mui/material");
+const material_2 = require("@mui/material");
 const Packet_Views = (props) => {
+    const isxl = (0, material_2.useMediaQuery)('(min-width:1920px)');
     const getBorderColor = () => {
         return props.ViewName === 'All Connections'
             ? "rgba(64, 75, 137, 0.10)"
@@ -33,7 +35,9 @@ const Packet_Views = (props) => {
     };
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, { container: true, item: true, xs: 4, lg: 3, style: {
             display: "flex",
-            padding: "10px 15px",
+            paddingTop: "10px",
+            paddingBottom: "10px",
+            paddingLeft: isxl ? "10px" : "2px",
             cursor: "pointer",
             alignItems: "center",
             borderRadius: "10px",
@@ -41,8 +45,11 @@ const Packet_Views = (props) => {
             background: getBackgroundColor(),
             boxShadow: props.ChosenView === props.ViewName ? "10px 10px 10px 10px rgba(0, 0, 0, 0.10)" : "",
             opacity: props.ChosenView === props.ViewName ? 1 : 0.5,
-        }, onClick: () => props.SetChosenView(props.ViewName), children: [(0, jsx_runtime_1.jsx)(material_1.Grid, { item: true, xs: 2, children: (0, jsx_runtime_1.jsx)("svg", { xmlns: "http://www.w3.org/2000/svg", width: "7", height: "12", viewBox: "0 0 7 8", fill: "none", children: (0, jsx_runtime_1.jsx)("circle", { cx: "3.5", cy: "4", r: "3.5", fill: getFillColor() }) }) }), (0, jsx_runtime_1.jsx)(material_1.Grid, { item: true, xs: 10, style: {
-                    fontSize: "16px",
+        }, onClick: () => props.SetChosenView(props.ViewName), children: [(0, jsx_runtime_1.jsx)(material_1.Grid, { item: true, xs: 2, style: {
+                    display: "flex",
+                    justifyContent: "center",
+                }, children: (0, jsx_runtime_1.jsx)("svg", { xmlns: "http://www.w3.org/2000/svg", width: "7", height: "12", viewBox: "0 0 7 8", fill: "none", children: (0, jsx_runtime_1.jsx)("circle", { cx: "3.5", cy: "4", r: "3.5", fill: getFillColor() }) }) }), (0, jsx_runtime_1.jsx)(material_1.Grid, { item: true, xs: 10, style: {
+                    fontSize: isxl ? "16px" : '11px',
                     fontWeight: "600",
                     lineHeight: "normal",
                     color: getFillColor(),

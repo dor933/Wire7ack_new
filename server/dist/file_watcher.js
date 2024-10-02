@@ -25,10 +25,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.startFileWatcher = startFileWatcher;
+exports.stopFileWatcher = stopFileWatcher;
 const chokidar = __importStar(require("chokidar"));
 const fs = __importStar(require("fs"));
 const packet_processor_1 = require("./packet_processor");
 const Streams = [];
+let watcher = null;
 function startFileWatcher(captureDirectory, wsServer) {
     const processedFiles = new Set();
     // Watch the capture directory for new or changed files
@@ -56,6 +58,20 @@ function startFileWatcher(captureDirectory, wsServer) {
     })
         .on('error', (error) => {
         console.error(`Watcher error: ${error.message}`);
+    });
+}
+function stopFileWatcher(onComplete, CaptureDirectory) {
+    if (!watcher) {
+        console.error('Watcher is not running or is already stopped.');
+        return;
+    }
+    watcher.close().then(() => {
+        console.log('File watcher stopped. Processing remaining files...');
+        checkIfProcessingIsComplete(CaptureDirectory, onComplete); // Process any remaining files
+    }).catch((error) => {
+        console.error('Error closing the watcher:', error);
+    }).finally(() => {
+        watcher = null; // Reset watcher to null after it's closed
     });
 }
 function handleFile(filePath, ws, processedFiles) {
@@ -86,4 +102,23 @@ function handleFile(filePath, ws, processedFiles) {
             });
         }
     });
+}
+function checkIfProcessingIsComplete(captureDirectory, onComplete) {
+    const intervalId = setInterval(() => {
+        fs.readdir(captureDirectory, (err, files) => {
+            if (err) {
+                console.error(`Error reading directory ${captureDirectory}: ${err.message}`);
+                clearInterval(intervalId);
+                return;
+            }
+            if (files.length === 0) {
+                console.log('Capture directory is empty. All files processed.');
+                clearInterval(intervalId);
+                onComplete();
+            }
+            else {
+                console.log(`Files remaining in directory: ${files.length}`);
+            }
+        });
+    }, 1000); // Check every 1 second if the folder is empty
 }

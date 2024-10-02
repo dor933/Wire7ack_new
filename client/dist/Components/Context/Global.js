@@ -15,6 +15,7 @@ exports.useGlobal = useGlobal;
 const GlobalProvider = ({ children }) => {
     const [isCaptureStarted, setIsCaptureStarted] = (0, react_1.useState)(false);
     const [isConnectionopen, setIsConnectionopen] = (0, react_1.useState)(false);
-    return ((0, jsx_runtime_1.jsx)(GlobalContext.Provider, { value: { isCaptureStarted, setIsCaptureStarted, isConnectionopen, setIsConnectionopen }, children: children }));
+    const [chosenInterface, setChosenInterface] = (0, react_1.useState)('');
+    return ((0, jsx_runtime_1.jsx)(GlobalContext.Provider, { value: { isCaptureStarted, chosenInterface, setChosenInterface, setIsCaptureStarted, isConnectionopen, setIsConnectionopen }, children: children }));
 };
 exports.GlobalProvider = GlobalProvider;
