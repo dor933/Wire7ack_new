@@ -5,12 +5,13 @@ import Packet_Views from "./Packets_Views";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Main_Actions from "./Main_Actions";
 import InfoIcon from '@mui/icons-material/Info';
+import { useGlobal } from "./Context/Global";
 
 
 const Sub_Header: React.FC = () => {
 
 
-    const [View, setView] = useState<string>("All Connections");
+    const {View,setView} = useGlobal();
 
     return (
         <>
@@ -34,9 +35,9 @@ const Sub_Header: React.FC = () => {
                 
             }}>
                 
-                <Packet_Views SetChosenView={setView} ChosenView={View} ViewName="All Connections"/>
-                <Packet_Views SetChosenView={setView} ChosenView={View} ViewName="Error Connections"/>
-                <Packet_Views SetChosenView={setView} ChosenView={View} ViewName="Warning Connections"/>
+                <Packet_Views  ViewName="All Connections"/>
+                <Packet_Views  ViewName="Error Connections"/>
+                <Packet_Views  ViewName="Warning Connections"/>
 
             </Grid>
 

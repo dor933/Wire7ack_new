@@ -18,7 +18,7 @@ const Header: React.FC = () => {
 
 
     const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-    const [Interfaces, setInterfaces] = useState<string[]>(['Ethernet','Wi-Fi','Bluetooth','USB','NFC','Cellular','VPN','Other']);
+    const [Interfaces, setInterfaces] = useState<string[]>([]);
     const {chosenInterface,setChosenInterface} = useGlobal();
     const {isConnectionopen,setIsConnectionopen} = useGlobal();
 

@@ -2,14 +2,15 @@ import "../App.css";
 import React from 'react';
 import { Grid } from "@mui/material";
 import {useMediaQuery} from "@mui/material";
+import { useGlobal } from "./Context/Global";
 
 interface Packet_ViewsProps {
     ViewName: string;
-    ChosenView: string;
-    SetChosenView: (ViewName: string) => void;
 }
 
 const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
+
+    const {View,setView} = useGlobal();
 
 
     const isxl = useMediaQuery('(min-width:1920px)');
@@ -55,9 +56,9 @@ const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
             borderRadius: "10px",
             border: `1px solid ${getBorderColor()}`,
             background: getBackgroundColor(),
-            boxShadow:props.ChosenView === props.ViewName ? "10px 10px 10px 10px rgba(0, 0, 0, 0.10)" : "",
-            opacity: props.ChosenView === props.ViewName ? 1 : 0.5,
-        }} onClick={() => props.SetChosenView(props.ViewName)}>
+            boxShadow:View === props.ViewName ? "10px 10px 10px 10px rgba(0, 0, 0, 0.10)" : "",
+            opacity: View === props.ViewName ? 1 : 0.5,
+        }} onClick={() => setView(props.ViewName)}>
             <Grid item xs={2} style={{
                 display: "flex",
                 justifyContent: "center",

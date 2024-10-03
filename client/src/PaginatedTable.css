@@ -30,4 +30,11 @@
     
   }
   
- 
+  .stream-error {
+    background-color: rgba(255, 0, 0, 0.1); /* Light red background */
+  }
+  
+  /* Style for packet rows with errors */
+  .packet-error {
+    background-color: rgba(255, 0, 0, 0.1); /* Light red background */
+  }

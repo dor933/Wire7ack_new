@@ -2,7 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Packet = void 0;
 class Packet {
-    constructor(PacketID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, ActivationID, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, Packet_indexer) {
+    constructor(PacketID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, ActivationID, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, 
+    // Existing fields for error detection
+    tcpFlags, tcpSeq, tcpAck, tcpChecksumStatus, udpChecksumStatus, arpOpcode, ipChecksumStatus, errorIndicator, 
+    // New fields for ICMP
+    icmpType, icmpCode, icmpChecksumStatus) {
         this.PacketID = PacketID;
         this.SourceIP = SourceIP;
         this.DestinationIP = DestinationIP;
@@ -19,7 +23,17 @@ class Packet {
         this.frameLength = frameLength;
         this.connectionID = connectionID;
         this.Interface_and_protocol = Interface_and_protocol;
-        this.Packet_indexer = Packet_indexer;
+        this.tcpFlags = tcpFlags;
+        this.tcpSeq = tcpSeq;
+        this.tcpAck = tcpAck;
+        this.tcpChecksumStatus = tcpChecksumStatus;
+        this.udpChecksumStatus = udpChecksumStatus;
+        this.arpOpcode = arpOpcode;
+        this.ipChecksumStatus = ipChecksumStatus;
+        this.errorIndicator = errorIndicator;
+        this.icmpType = icmpType;
+        this.icmpCode = icmpCode;
+        this.icmpChecksumStatus = icmpChecksumStatus;
     }
 }
 exports.Packet = Packet;

@@ -49,7 +49,7 @@ const startMainProcess = async (interfacename) => {
     const baseFileName = 'capture';
     const numberOfFiles = 10; // Number of files in the ring buffer
     console.log('this is capture directory', captureDirectory);
-    const fileSize = 1000; // Size of each file in kilobytes (100 MB)
+    const fileSize = 3000; // Size of each file in kilobytes (100 MB)
     fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
     // Ensure the capture directory exists
     if (!fs.existsSync(captureDirectory)) {
@@ -70,7 +70,7 @@ const startMainProcess = async (interfacename) => {
         '-b',
         `filesize:${fileSize}`,
         '-f',
-        'src host 10.0.0.10', // Correct capture filter syntax
+        'host 10.0.0.10', // Correct capture filter syntax
         '-w',
         path.join(captureDirectory, `${baseFileName}.pcapng`),
     ]);

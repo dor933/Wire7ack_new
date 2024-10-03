@@ -83,10 +83,13 @@ function handleFile(filePath, ws, processedFiles) {
             console.error(`Error stating file ${filePath}: ${err.message}`);
             return;
         }
-        const now = Date.now();
-        const mtime = new Date(stats.mtime).getTime();
-        // If the file hasn't been modified in the last 5 seconds, process it
-        if (now - mtime > 5000) {
+        //check if the file size is greater or equial to 3 MB
+        if (stats.size < 3000000) {
+            console.log('File size is less than 3 MB, skipping processing.');
+            return;
+        }
+        else {
+            console.log('File size is greater than 3 MB, processing.');
             processedFiles.add(filePath);
             (0, packet_processor_1.processCaptureFile)(filePath, ws, Streams, () => {
                 // After processing, delete the file
@@ -96,7 +99,6 @@ function handleFile(filePath, ws, processedFiles) {
                     }
                     else {
                         console.log(`Deleted file: ${filePath}`);
-                        processedFiles.delete(filePath);
                     }
                 });
             });

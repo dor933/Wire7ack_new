@@ -17,7 +17,8 @@ import { Visibility } from "@mui/icons-material";
 
 interface Main_CompProps {
     rows:Stream[],
-    setrows:Function
+    setrows:Function,
+    invalid_streams:Stream[],
 }
 
 
@@ -174,7 +175,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                     </Grid> */}
 
                 <Grid item xs={4}>
-                    <SearchBar SearchType="Search" Fields={ChosenFields}/>
+                    <SearchBar SearchType="Search" Fields={ChosenFields} setChosenFields={setChosenFields}/>
 
                 </Grid>
 
@@ -262,9 +263,10 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     color: "#304C57",
     fontFamily: "Roboto",
     fontSize: "16px",
-    fontWeight: "400",
+    fontWeight: "500",
     lineHeight: "normal",
-    marginTop:"-35px",
+    
+    marginTop:"-30px",
     display: "flex",
     flexDirection: "column", // This makes the content flow into two rows
     alignItems: "flex-start",
@@ -278,50 +280,15 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
       alignItems: "center",
       marginBottom: "8px", // Adds space between rows
     }}>
-    <span style={{ color:"#304C57",fontWeight: "400",minWidth:"120px",flexGrow:1 }}>Source IP</span>
-    <Checkbox
-      defaultChecked={false}
-      color="primary"
-      id="source.ip"
-        onChange={(e)=>{
-    
-            if(e.target.checked){
-            setChosenFields({...ChosenFields,"Source IP":[]});
-            }
-            else{
-              setChosenFields((prevFields) => {
-                const { "Source IP": _, ...rest } = prevFields;
-                return rest;
+    <span style={{ fontWeight: ChosenFields.hasOwnProperty("Source IP")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("Source IP") ? "#0d0da3" : "#304C57", 
 
-              });           
-             }
-        }
-    }
-
-      inputProps={{ "aria-label": "secondary checkbox" }}
-    />
-    <span style={{ fontWeight: "400",minWidth:"120px",flexGrow:1,color: "#304C57", }}>Destination IP</span>
-    <Checkbox
-      defaultChecked={false}
-      color="primary"
-      id="dest.ip"
-      onChange={(e)=>{
-        if(e.target.checked){
-          setChosenFields({
-            ...ChosenFields,
-            "Destination IP": [] // Add "Destination IP" with an initial empty value
-          });
-        }
-        else{
-          setChosenFields((prevFields:Record<string,string[]>) => {
-  const { "Destination IP": _, ...rest } = prevFields;
-  return rest;
-}); 
-        }
-      }
-    }
-      inputProps={{ "aria-label": "secondary checkbox" }}
-    />
+    }}>Source IP</span>
+ 
+ <span style={{ fontWeight: ChosenFields.hasOwnProperty("Destination IP")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("Destination IP") ? "#0d0da3" : "#304C57", 
+  
+      }}> 
+    Destination IP</span>
+   
  
         
      
@@ -331,56 +298,20 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
       display: "flex",
       alignItems: "center",
       marginBottom: "8px", // Adds space between rows
-    }}>
-  <span style={{color: "#304C57", fontWeight: "400",minWidth:"120px",flexGrow:1 }}>Validity</span>
+  
+  }}>
+     
+ <span style={{ fontWeight: ChosenFields.hasOwnProperty("Validity")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("Validity") ? "#0d0da3" : "#304C57", 
+  
+}}> 
+  Validity</span>
 
-  <Checkbox
-      defaultChecked={false}
-      color="primary"
-      id="validity"
-      onChange={(e)=>{
-        if(e.target.checked){
-          setChosenFields({
-            ...ChosenFields,
-            "Validity": [] // Add "Destination IP" with an initial empty value
-          });
-        } 
-        else{
-          setChosenFields((prevFields:Record<string,string[]>) => {
-  const { "Validity": _, ...rest } = prevFields;
-  return rest;
-          });
-        }
+ 
+  <span style={{ fontWeight: ChosenFields.hasOwnProperty("Protocol")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("Protocol") ? "#0d0da3" : "#304C57", 
+  
+}}> 
+   Protocol</span>
       
-      }
-      
-
-      }
-    
-      inputProps={{ "aria-label": "secondary checkbox" }}
-    />
-    <span style={{ color: "#304C57",fontWeight: "400",minWidth:"120px",flexGrow:1 }}>Protocol</span>
-        <Checkbox
-      defaultChecked={false}
-      id="protocol"
-        onChange={(e)=>{
-            if(e.target.checked){
-            setChosenFields({...ChosenFields,"Protocol":[]});
-            }
-            else{
-              setChosenFields((prevFields) => {
-                const { "Protocol": _, ...rest } = prevFields;
-                return rest;
-
-              });           
-             }
-            }
-    
-        }
-    
-      color="primary"
-      inputProps={{ "aria-label": "secondary checkbox" }}
-    />
   </div>
 </Box>
           
@@ -439,6 +370,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 DestinationIPFilter={DestinationIPFilter}
                 starttimedate={startdatetime}
                 endtimedate={enddatetime}
+                invalid_streams={props.invalid_streams}
                 
 
                 />
