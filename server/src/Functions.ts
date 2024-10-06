@@ -1,5 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import fs from 'fs';
+import path from 'path';
 
 const execAsync = promisify(exec);
 
@@ -20,4 +22,18 @@ async function getTsharkInterfaces(): Promise<string[]> {
   }
 }
 
-export { getTsharkInterfaces };
+function clearcapturedirectory(capturedirectory:string){
+// Ensure the capture directory exists
+if (!fs.existsSync(capturedirectory)) {
+    fs.mkdirSync(capturedirectory);
+  }
+  else{
+    // Clear the capture directory
+    fs.readdirSync(capturedirectory).forEach((file) => {
+      fs.unlinkSync(path.join(capturedirectory, file));
+    });
+  }
+  // Ensure the capture directory exists
+}
+
+export { getTsharkInterfaces,clearcapturedirectory };

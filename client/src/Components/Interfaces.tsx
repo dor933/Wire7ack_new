@@ -8,9 +8,9 @@ import {
   TextField,
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
-import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
+import { KeyboardArrowRight } from '@mui/icons-material';
 
-interface Top_Table_ElementProps {
+interface InterfacesProps {
   ElementName: string;
   Icon: JSX.Element;
   Data: string[];
@@ -18,7 +18,7 @@ interface Top_Table_ElementProps {
   useTextInput?: boolean; // Determines if TextField is used
 }
 
-const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
+const Interfaces: React.FC<InterfacesProps> = ({
   ElementName,
   Icon,
   Data,
@@ -48,24 +48,32 @@ const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingLeft: useTextInput?'0px': '10px',
-        paddingRight: useTextInput? '0px': '10px',
-        minHeight: '58px',
-        paddingBottom:useTextInput? '0px': '3.5px',
-        borderRadius: '10px',
-        border: '1px solid rgba(48, 76, 87, 0.20)',
-        background: '#FFF',
-        boxShadow: '0px 0px 5px 0px rgba(0, 0, 0, 0.10)',
+    
+      
+        position: 'relative',
       }}
     >
-      <Grid container item xs={12}>
+      <Grid container item xs={10} style={{
+          borderRadius: '10px',
+          border: '1px solid rgba(48, 76, 87, 0.20)',
+          background: '#FFF',
+          boxShadow: '0px 0px 5px 0px rgba(0, 0, 0, 0.10)',
+          paddingLeft: '10px',
+          paddingRight: '10px',
+          paddingBottom: '7.5px',
+          paddingTop: '7.5px',
+          justifyContent:'space-between',
+          minHeight: '58px',
+
+
+      }}>
         <Grid
           item
-          xs={useTextInput ? 12 : 8}
+          xs={8}
           style={{
             color: '#304C57',
             fontFamily: 'Roboto',
+            
             fontSize: '16px',
             fontStyle: 'normal',
             fontWeight: 400,
@@ -73,35 +81,12 @@ const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
             display: 'flex',
             alignItems: 'center',
             opacity: 0.6,
+            justifyContent: 'flex-start', // Center the text
           }}
         >
-          {useTextInput ? (
-            <TextField
-              fullWidth
-              placeholder={ElementName}
-              
-              value={selectedValue}
-              onChange={(e) => {
-                setSelectedValue(e.target.value);
-                if (SetNewValue) {
-                  SetNewValue(e.target.value);
-                }
-              }}
-              InputProps={{
-                style: {
-                  fontSize: '16px',
-                  color: '#304C57',
-                  fontWeight: 400,
-                  opacity:1
-                },
-              }}
-            />
-          ) : (
-            selectedValue || ElementName
-          )}
+         {selectedValue ? selectedValue : ElementName}
         </Grid>
 
-        {!useTextInput && (
           <Grid
             item
             xs={4}
@@ -126,26 +111,31 @@ const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  padding: '0px',
                   minHeight: '36px', // Keep the height fixed
                 }}
               >
-                {open ? Icon : <KeyboardArrowRight style={{
-                   color: "#000000",
-                   fontSize: "23px",
-                   marginTop: "5px",
-                }} />}
+                {open ?  Icon : <KeyboardArrowRight style={{
+                    color: '#000000',
+                    fontSize: '23px',
+                    }}/>
+                }
               </ListItemButton>
             )}
           </Grid>
-        )}
       </Grid>
 
       {/* The collapsible area */}
-      {!useTextInput && (
         <Grid item xs={12} style={{ width: '100%' }}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
+            <List
+              component="div"
+              disablePadding
+              sx={{
+                width: '100%',
+                backgroundColor: '#FFF',
+                boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+              }}
+            >
               {Data.map((item, index) => (
                 <ListItemButton
                   key={index}
@@ -156,16 +146,23 @@ const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
                     }
                     setOpen(false);
                   }}
+                  sx={{
+                    justifyContent: 'center', // Center the list items
+                  }}
                 >
-                  <ListItemText primary={item} />
+                  <ListItemText
+                    primary={item}
+                    sx={{
+                      textAlign: 'left', // Center the text
+                    }}
+                  />
                 </ListItemButton>
               ))}
             </List>
           </Collapse>
         </Grid>
-      )}
     </Grid>
   );
 };
 
-export default Top_Table_Element;
+export default Interfaces;

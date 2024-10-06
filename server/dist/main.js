@@ -24,13 +24,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.startMainProcess = void 0;
+exports.stopMainProcess = exports.startMainProcess = void 0;
 const child_process_1 = require("child_process");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 const file_watcher_1 = require("./file_watcher");
 const Functions_1 = require("./Functions");
 const server_1 = require("./server");
+const Functions_2 = require("./Functions");
+let dumpcap = null; // Define dumpcap globally
 const startMainProcess = async (interfacename) => {
     const tsharkInterfaces = await (0, Functions_1.getTsharkInterfaces)();
     console.log('this is tshark interfaces', tsharkInterfaces);
@@ -52,17 +54,9 @@ const startMainProcess = async (interfacename) => {
     const fileSize = 3000; // Size of each file in kilobytes (100 MB)
     fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
     // Ensure the capture directory exists
-    if (!fs.existsSync(captureDirectory)) {
-        fs.mkdirSync(captureDirectory);
-    }
-    else {
-        // Clear the capture directory
-        fs.readdirSync(captureDirectory).forEach((file) => {
-            fs.unlinkSync(path.join(captureDirectory, file));
-        });
-    }
+    (0, Functions_2.clearcapturedirectory)(captureDirectory);
     // Start dumpcap with the specified configuration
-    const dumpcap = (0, child_process_1.spawn)('dumpcap', [
+    dumpcap = (0, child_process_1.spawn)('dumpcap', [
         '-i',
         interfaceIndex,
         '-b',
@@ -70,7 +64,7 @@ const startMainProcess = async (interfacename) => {
         '-b',
         `filesize:${fileSize}`,
         '-f',
-        'host 10.0.0.10', // Correct capture filter syntax
+        'host 192.168.10.95', // Correct capture filter syntax
         '-w',
         path.join(captureDirectory, `${baseFileName}.pcapng`),
     ]);
@@ -86,3 +80,14 @@ const startMainProcess = async (interfacename) => {
     return "Main process started successfully";
 };
 exports.startMainProcess = startMainProcess;
+const stopMainProcess = () => {
+    if (dumpcap) {
+        dumpcap.kill('SIGINT'); // Send SIGINT to stop dumpcap gracefully
+        dumpcap = null; // Clear the reference
+        console.log('Main process stopped successfully');
+    }
+    else {
+        console.log('No running process to stop');
+    }
+};
+exports.stopMainProcess = stopMainProcess;

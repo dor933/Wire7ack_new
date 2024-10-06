@@ -84,14 +84,18 @@ const Main: React.FC = () => {
 
 
           //add the invalid new streams to the invalid_streams with the previous invalid streams
-          setInvalid_streams([...invalid_streams, ...receivedStreams.filter((stream) => stream.validity === false)]);
 
-        if(streams.length>500){
-          setStreams(receivedStreams)
-        }
-        else{
-          setStreams([...streams, ...receivedStreams]);
-        }
+          const new_invalid_streams = receivedStreams.filter((stream) => stream.validity === false);
+          setInvalid_streams((prev_invalid_streams) => [...prev_invalid_streams, ...new_invalid_streams]);
+
+          setStreams((prev_streams) => {
+            if (prev_streams.length > 500) {
+              return receivedStreams;
+            } else {
+              return [...prev_streams, ...receivedStreams];
+            }
+          });
+
       } catch (error) {
         console.error('Error parsing or processing data:', error);
       }
@@ -116,7 +120,7 @@ const Main: React.FC = () => {
     <div>
       <Header />
       <Sub_Header />
-      <Main_Comp rows={streams} invalid_streams={invalid_streams} setrows={setStreams} />
+      <Main_Comp rows={streams} invalid_streams={invalid_streams} setrows={setStreams} setInvalid_streams={setInvalid_streams} />
     </div>
   );
 };

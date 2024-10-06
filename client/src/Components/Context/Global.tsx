@@ -13,6 +13,10 @@ interface GlobalContext {
     View: string;
     setView: React.Dispatch<React.SetStateAction<string>>;
 
+    ChosenFields: Record<string, string[]>;
+    setChosenFields: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
+
+
   
 
 }
@@ -32,9 +36,10 @@ export const GlobalProvider: React.FC<{children:React.ReactNode}> = ({ children 
     const [isConnectionopen, setIsConnectionopen] = useState<boolean>(false);
     const [chosenInterface, setChosenInterface] = useState<string>('');
     const [View, setView] = useState<string>("All Connections");
+    const [ChosenFields, setChosenFields] = useState<Record<string, string[]>>({});
 
     return (
-        <GlobalContext.Provider value={{ isCaptureStarted,chosenInterface,View,setView,setChosenInterface, setIsCaptureStarted,isConnectionopen,setIsConnectionopen }}>
+        <GlobalContext.Provider value={{ isCaptureStarted,chosenInterface,View,ChosenFields,setChosenFields,setView,setChosenInterface, setIsCaptureStarted,isConnectionopen,setIsConnectionopen }}>
             {children}
         </GlobalContext.Provider>
     );

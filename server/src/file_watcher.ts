@@ -6,6 +6,8 @@ import * as fs from 'fs';
 import { processCaptureFile } from './packet_processor';
 import { WebSocket, WebSocketServer } from 'ws';
 import { Stream } from './shared/Stream';
+import { stopMainProcess } from './main';
+import { clearcapturedirectory } from './Functions';
 
 const Streams: Stream[] = [];
 let watcher: chokidar.FSWatcher | null = null;
@@ -49,21 +51,12 @@ export function startFileWatcher(
     });
 }
 
-export function stopFileWatcher(onComplete: () => void, CaptureDirectory:string): void {
-
-  if (!watcher) {
-    console.error('Watcher is not running or is already stopped.');
-    return;
-  }
+export function stopFileWatcher(onComplete: () => void,capturedirectory:string): void {
   
-  watcher.close()!.then(() => {
-    console.log('File watcher stopped. Processing remaining files...');
-    checkIfProcessingIsComplete(CaptureDirectory, onComplete); // Process any remaining files
-  }).catch((error) => {
-    console.error('Error closing the watcher:', error);
-  }).finally(() => {
-    watcher = null; // Reset watcher to null after it's closed
-  });
+ stopMainProcess();
+ clearcapturedirectory(capturedirectory)
+
+
 
   
 }

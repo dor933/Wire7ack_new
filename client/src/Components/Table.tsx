@@ -112,10 +112,10 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       ) {
         return false;
       }
-      if (SourceIPFilter !== '' && row.SourceIP !== SourceIPFilter) {
+      if (SourceIPFilter !== '' && !row.SourceIP.includes(SourceIPFilter)) {
         return false;
       }
-      if (DestinationIPFilter !== '' && row.DestinationIP !== DestinationIPFilter) {
+      if (DestinationIPFilter !== '' && !row.DestinationIP.includes(DestinationIPFilter)) {
         return false;
       }
       return true;

@@ -8,8 +8,12 @@ import { startFileWatcher } from './file_watcher';
 import { getTsharkInterfaces } from './Functions';
 import { WebSocketServer } from 'ws';
 import { wsServer } from './server';
+import { ChildProcessWithoutNullStreams } from 'child_process';
+import { clearcapturedirectory } from './Functions';
 
-export const startMainProcess = async (interfacename:string) => {
+let dumpcap: ChildProcessWithoutNullStreams | null = null; // Define dumpcap globally
+
+export const startMainProcess = async (interfacename:string,fields:Record<string,string[]>) => {
 
   const tsharkInterfaces = await getTsharkInterfaces();
   console.log('this is tshark interfaces', tsharkInterfaces);
@@ -38,18 +42,44 @@ const fileSize = 3000; // Size of each file in kilobytes (100 MB)
 fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
 
 // Ensure the capture directory exists
-if (!fs.existsSync(captureDirectory)) {
-  fs.mkdirSync(captureDirectory);
-}
-else{
-  // Clear the capture directory
-  fs.readdirSync(captureDirectory).forEach((file) => {
-    fs.unlinkSync(path.join(captureDirectory, file));
-  });
-}
+clearcapturedirectory(captureDirectory);
+
+let filterParts: string[] = [];
+let ipFilterParts: string[] = [];
+
+for (const [key, values] of Object.entries(fields)) {
+    if (values.length > 0) {
+      const keyFilter = values.map((value) => {
+        switch (key.toLowerCase()) {
+          case 'ip host 1':
+          case 'ip host 2': {
+            values.forEach((value) => {
+              ipFilterParts.push(`host ${value}`);
+
+            });
+            break;
+
+          }
+          case 'protocol':
+            return `proto ${value}`;
+          default:
+            console.warn(`Unsupported filter key: ${key}`);
+            return null;
+        }
+        }  ).filter(Boolean); // Remove any nulls if key is unsupported
+
+      if (keyFilter.length > 0) {
+        filterParts.push(`(${keyFilter.join(' or ')})`);
+      }
+    }
+  }
+
+  // Join all filter parts with 'and' to construct the complete filter
+  const filterString = filterParts.join(' and ');
+  console.log('Generated filter string:', filterString);
 
 // Start dumpcap with the specified configuration
-const dumpcap = spawn('dumpcap', [
+ dumpcap = spawn('dumpcap', [
   '-i',
   interfaceIndex,
   '-b',
@@ -57,7 +87,7 @@ const dumpcap = spawn('dumpcap', [
   '-b',
   `filesize:${fileSize}`,
   '-f',
-   'host 10.0.0.10', // Correct capture filter syntax
+   filterString,
   '-w',
   path.join(captureDirectory, `${baseFileName}.pcapng`),
 ]);
@@ -77,3 +107,13 @@ startFileWatcher(captureDirectory, wsServer);
 
 return "Main process started successfully";
 }
+
+export const stopMainProcess = () => {
+  if (dumpcap) {
+    dumpcap.kill('SIGINT'); // Send SIGINT to stop dumpcap gracefully
+    dumpcap = null; // Clear the reference
+    console.log('Main process stopped successfully');
+  } else {
+    console.log('No running process to stop');
+  }
+};

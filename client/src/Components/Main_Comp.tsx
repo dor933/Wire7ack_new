@@ -14,18 +14,22 @@ import Top_Table_Date from "./Top_Table_Date";
 import { Stream as Stream } from '../shared/Stream';
 import {Checkbox} from "@mui/material";
 import { Visibility } from "@mui/icons-material";
+import Filter_Button from "./Filter_Button";
+import { FormControlLabel } from "@mui/material";
+import { useGlobal,GlobalProvider } from "./Context/Global";
 
 interface Main_CompProps {
     rows:Stream[],
     setrows:Function,
     invalid_streams:Stream[],
+    setInvalid_streams:Function,
 }
 
 
 const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
     const newrows=props.rows;
-    const [ChosenFields,setChosenFields]=useState<Record <string,string[]>>({});
+    const {ChosenFields,setChosenFields}=useGlobal();
     const [ProtocolFilter, setProtocolFilter] = useState<string>('');
     const [ValidityFilter, setValidityFilter] = useState<boolean | undefined>(undefined);
     const [FlagsFilter, setFlagsFilter] = useState<string>('');
@@ -34,15 +38,37 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     const [isfiltervisible,setisfiltervisible]=useState<boolean>(false);
     const [startdatetime,setstartdatetime]=useState<string>('');
     const [enddatetime,setenddatetime]=useState<string>('');
-
-    const handleclearall=()=>{
-        props.setrows([]);
-        
-    }
-
-    useEffect(()=>{
-
-    },[startdatetime,enddatetime,ProtocolFilter,ValidityFilter,FlagsFilter,SourceIPFilter,DestinationIPFilter])
+    const [tablefilters,settablefilters]=useState<string[]>(["Start Time", "End Time", "Protocol", "Flags", "Source IP", "Destination IP", "Validity"]);
+    const [chosentablefilters,setchosentablefilters]=useState<string[]>([]);
+    const [isfilter2visible,setisfilter2visible]=useState<boolean>(false);
+    const maxtablefilters=4;
+      
+    
+    useEffect(() => {
+      setchosentablefilters(tablefilters.slice(0, maxtablefilters));
+    }, [tablefilters]);
+  
+    const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>, filter: string) => {
+      if (event.target.checked) {
+        if (chosentablefilters.length >= maxtablefilters) {
+          // Maximum filters selected, do not add more
+          return;
+        }
+        setchosentablefilters([...chosentablefilters, filter]);
+      } else {
+        setchosentablefilters(chosentablefilters.filter((f) => f !== filter));
+      }
+    };
+  
+    const handleclearall = () => {
+      props.setrows([]);
+      props.setInvalid_streams([]);
+    };
+  
+    useEffect(() => {
+      // Update the table data based on filter changes if needed
+    }, [startdatetime, enddatetime, ProtocolFilter, ValidityFilter, FlagsFilter, SourceIPFilter, DestinationIPFilter]);
+  
     
 
 
@@ -106,6 +132,42 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 }}>
                     Within each connection, you can find the packets that were sent and received.
                     </Grid>
+
+                 
+                    <Filter_Button setisfiltervisible={setisfilter2visible} isfiltervisible={isfilter2visible} ismainfilter={false}/>
+
+                    {isfilter2visible && (
+                      
+            <Grid container item xs={12} spacing={1}>
+              {tablefilters.map((filter) => (
+                <Grid item key={filter}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={chosentablefilters.includes(filter)}
+                        onChange={(event) => handleCheckboxChange(event, filter)}
+                        name={filter}
+                        color="primary"
+                        disabled={
+                          !chosentablefilters.includes(filter) && chosentablefilters.length >= maxtablefilters
+                        }
+                      />
+                    }
+                    label={filter}
+                    style={{ 
+                      fontFamily: "Roboto",
+                      fontSize: "10px",
+                      color: "#000000",
+                      fontWeight: "200",
+
+                     }}
+                  />
+                </Grid>
+              ))}
+              </Grid>
+            )}
+
+                    
                 </Grid>
                 <Grid container item xs={6} style={{
                 flexDirection:"row",
@@ -114,145 +176,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 alignItems:"center",
                 justifyContent:"flex-end",
             }}>
-                <Grid onClick={()=> {setisfiltervisible(!isfiltervisible)}} container item xs={4} xl={2} style={{
-                    display: "flex",
-                    padding: "10px 10px",
-                    alignItems: "center",
-                    borderRadius: "10px",
-                    background: "rgba(64, 75, 137, 0.10)",
-                    cursor: "pointer",
-                }}>
-
-
-                          <Grid item xs={2} >
-                    <FilterAltIcon style={{
-                        color: "#326591",
-                        fontSize: "23px",
-                        marginTop: "5px",
-                    }}/>
-                </Grid>
-                <Grid item xs={10} style={{
-                    color: "#326591",
-                    fontFamily: "Roboto",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    fontStyle: "normal",
-                    lineHeight: "normal",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  
-
-                }}>
-                    {
-                        isfiltervisible ? "Hide Filters" : "Show Filters"
-                    }
-                    </Grid>
-                   
-
-
-                </Grid>
-
-                {/* <Grid container item xs={12} style={{ 
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    justifyContent: "flex-end",
-                }}>
-                    <Grid item xs={2} style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}>
-                        <Checkbox
-                            defaultChecked
-                            color="primary"
-                            inputProps={{ 'aria-label': 'secondary checkbox' }}
-                        />
-                        
-                    </Grid>
-
-                    </Grid> */}
-
-                <Grid item xs={4}>
-                    <SearchBar SearchType="Search" Fields={ChosenFields} setChosenFields={setChosenFields}/>
-
-                </Grid>
-
-          
-                
-
-                </Grid>
-
-            </Grid>
-            <Grid container item xs={12} style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                alignSelf: "stretch",
-                flexDirection: "row",
-            }}>
-                 <Grid container item xs={8} style={{
-                flexDirection:"row",
-                display:"flex",
-                alignItems:"flex-start",
-                gap:"10px",
-
-                
-                
-            }}>
-               
-            
-            <Top_Table_Date ElementName="Start Time" Icon={<KeyboardArrowDownIcon style={{
-                    color: "#326591",
-                    fontSize: "23px",
-                    marginTop: "5px",
-
-                }}/>}
-                
-                SetNewValue={setstartdatetime}
-                />
-
-                    <Top_Table_Date   ElementName="End Time" Icon={<KeyboardArrowDownIcon style={{
-                    color: "#326591",
-                    fontSize: "23px",
-                    marginTop: "5px",
-                }}/>}
-                
-                SetNewValue={setenddatetime}
-                />
-                <Top_Table_Element Data={
-                  //list all the unique values of the Protocol field
-                    newrows.map((row)=>row.Protocol).filter((value,index,self)=>self.indexOf(value)===index)
-                }  ElementName="Protocol" Icon={<KeyboardArrowDownIcon style={{
-                    color: "#326591",
-                    fontSize: "23px",
-                    marginTop: "5px",
-                }}/>}
-
-                SetNewValue={setProtocolFilter}
-                
-                />
-
-<Top_Table_Element Data={
-  
-  //list all the unique values of the Flags field inside the Packet array in the Stream object
-
-    newrows.map((row)=>row.Packets.map((packet)=>packet.flags)).flat().filter((value,index,self)=>self.indexOf(value)===index)
-
-}  ElementName="Flags" Icon={<KeyboardArrowDownIcon style={{
-                    color: "#326591",
-                    fontSize: "23px",
-                    marginTop: "5px",
-                }}/>}
-                SetNewValue={setFlagsFilter}
-                />
-            
-                
-
-
-            </Grid>
-            <Grid container item xs={4} style={{
+                <Grid container item xs={4} style={{
                 flexDirection:"row",
                 display:"flex",
                 justifyContent:"space-between",
@@ -266,7 +190,6 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     fontWeight: "500",
     lineHeight: "normal",
     
-    marginTop:"-30px",
     display: "flex",
     flexDirection: "column", // This makes the content flow into two rows
     alignItems: "flex-start",
@@ -280,14 +203,14 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
       alignItems: "center",
       marginBottom: "8px", // Adds space between rows
     }}>
-    <span style={{ fontWeight: ChosenFields.hasOwnProperty("Source IP")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("Source IP") ? "#0d0da3" : "#304C57", 
+    <span style={{ fontWeight: ChosenFields.hasOwnProperty("ip host 1")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("ip host 1") ? "#0d0da3" : "#304C57", 
 
-    }}>Source IP</span>
+    }}>ip host 1</span>
  
- <span style={{ fontWeight: ChosenFields.hasOwnProperty("Destination IP")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("Destination IP") ? "#0d0da3" : "#304C57", 
+ <span style={{ fontWeight: ChosenFields.hasOwnProperty("ip host 2")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("ip host 2") ? "#0d0da3" : "#304C57", 
   
       }}> 
-    Destination IP</span>
+    ip host 2</span>
    
  
         
@@ -313,12 +236,181 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
    Protocol</span>
       
   </div>
+  
 </Box>
           
        
                
 
                 </Grid>
+            
+            <Filter_Button setisfiltervisible={setisfiltervisible} isfiltervisible={isfiltervisible} ismainfilter={true}/>
+
+            
+
+                <Grid item xs={4}>
+                    <SearchBar SearchType="Search" Fields={ChosenFields} setChosenFields={setChosenFields}/>
+
+                </Grid>
+
+                
+
+          
+                
+
+                </Grid>
+
+            </Grid>
+            <Grid container item xs={12} style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                alignSelf: "stretch",
+                flexDirection: "row",
+            }}>
+                 <Grid container item xs={8} style={{
+                flexDirection:"row",
+                display:"flex",
+                alignItems:"flex-start",
+                gap:"10px",
+
+                
+                
+            }}>
+             
+             {
+  chosentablefilters.map((filter) => {
+    if (filter === "Start Time") {
+      return (
+        <Top_Table_Date
+          key={filter}
+          ElementName="Start Time"
+          Icon={
+            <KeyboardArrowDownIcon
+              style={{
+                color: "#000000",
+                fontSize: "23px",
+                marginTop: "5px",
+              }}
+            />
+          }
+          SetNewValue={setstartdatetime}
+        />
+      );
+    } else if (filter === "End Time") {
+      return (
+        <Top_Table_Date
+          key={filter}
+          ElementName="End Time"
+          Icon={
+            <KeyboardArrowDownIcon
+              style={{
+                color: "#000000",
+                fontSize: "23px",
+                marginTop: "5px",
+              }}
+            />
+          }
+          SetNewValue={setenddatetime}
+        />
+      );
+    } else if (filter === "Source IP") {
+      return (
+        <Top_Table_Element
+          key={filter}
+          Data={[]}
+          useTextInput={true}
+          ElementName="Source IP"
+          Icon={
+            <KeyboardArrowDownIcon
+              style={{
+                color: "#000000",
+                fontSize: "23px",
+                marginTop: "5px",
+              }}
+            />
+          }
+          SetNewValue={setSourceIPFilter}
+        />
+      );
+    } else if (filter === "Destination IP") {
+      return (
+        <Top_Table_Element
+          key={filter}
+          Data={[]}
+          useTextInput={true}
+          ElementName="Destination IP"
+          Icon={
+            <KeyboardArrowDownIcon
+              style={{
+                color: "#000000",
+                fontSize: "23px",
+                marginTop: "5px",
+              }}
+            />
+          }
+          SetNewValue={setDestinationIPFilter}
+        />
+      );
+    } else if (filter === "Protocol") {
+      return (
+        <Top_Table_Element
+          key={filter}
+          Data={
+            // List all the unique values of the Protocol field
+            newrows.concat(props.invalid_streams)
+              .map((row) => row.Protocol)
+              .filter((value, index, self) => self.indexOf(value) === index)
+          }
+          ElementName="Protocol"
+          Icon={
+            <KeyboardArrowDownIcon
+              style={{
+                color: "#000000",
+                fontSize: "23px",
+                marginTop: "5px",
+              }}
+            />
+          }
+          SetNewValue={setProtocolFilter}
+        />
+      );
+    } else if (filter === "Flags") {
+      return (
+        <Top_Table_Element
+          key={filter}
+          Data={
+            newrows
+              .map((row) => row.Packets.map((packet) => packet.flags))
+              .flat()
+              .filter((value, index, self) => self.indexOf(value) === index)
+          }
+          ElementName="Flags"
+          Icon={
+            <KeyboardArrowDownIcon
+              style={{
+                color: "#000000",
+                fontSize: "23px",
+                marginTop: "5px",
+              }}
+            />
+          }
+          SetNewValue={setFlagsFilter}
+        />
+      );
+    } else {
+      return null;
+    }
+  })
+}
+
+              
+              
+                
+
+
+            </Grid>
+          
 
            <Grid container style={{
             display:'flex',
@@ -363,6 +455,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
 
                 </Grid>
+                
                 <Table rows={newrows} ProtocolFilter={ProtocolFilter} 
                 ValidityFilter={ValidityFilter} 
                 FlagsFilter={FlagsFilter} 

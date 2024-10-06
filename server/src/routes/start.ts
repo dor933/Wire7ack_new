@@ -7,8 +7,9 @@ const router=Router();
 router.post('/start',(req: Request, res: Response) => {
     try {
 
-      const { interfaceName } = req.body;
-      const result = startMainProcess(interfaceName);
+      const { interfaceName,fields } = req.body;
+      
+      const result = startMainProcess(interfaceName,fields);
       res.send(result);
     } catch (error) {
       console.error('Error starting the main process:', error);

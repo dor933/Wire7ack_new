@@ -41,6 +41,7 @@ const Top_Table_Date: React.FC<Top_Table_ElementProps> = ({ ElementName, Icon, S
       flexDirection: 'column',
       alignItems: 'center',
       borderRadius: '10px',
+      height: '58px',
       
       
         

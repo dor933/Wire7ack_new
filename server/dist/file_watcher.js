@@ -29,6 +29,8 @@ exports.stopFileWatcher = stopFileWatcher;
 const chokidar = __importStar(require("chokidar"));
 const fs = __importStar(require("fs"));
 const packet_processor_1 = require("./packet_processor");
+const main_1 = require("./main");
+const Functions_1 = require("./Functions");
 const Streams = [];
 let watcher = null;
 function startFileWatcher(captureDirectory, wsServer) {
@@ -60,19 +62,9 @@ function startFileWatcher(captureDirectory, wsServer) {
         console.error(`Watcher error: ${error.message}`);
     });
 }
-function stopFileWatcher(onComplete, CaptureDirectory) {
-    if (!watcher) {
-        console.error('Watcher is not running or is already stopped.');
-        return;
-    }
-    watcher.close().then(() => {
-        console.log('File watcher stopped. Processing remaining files...');
-        checkIfProcessingIsComplete(CaptureDirectory, onComplete); // Process any remaining files
-    }).catch((error) => {
-        console.error('Error closing the watcher:', error);
-    }).finally(() => {
-        watcher = null; // Reset watcher to null after it's closed
-    });
+function stopFileWatcher(onComplete, capturedirectory) {
+    (0, main_1.stopMainProcess)();
+    (0, Functions_1.clearcapturedirectory)(capturedirectory);
 }
 function handleFile(filePath, ws, processedFiles) {
     if (processedFiles.has(filePath))

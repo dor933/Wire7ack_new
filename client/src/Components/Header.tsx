@@ -9,6 +9,7 @@ import Top_Table_Element from "./Top_Table_Element";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import axios from 'axios';
 import {useGlobal} from "./Context/Global";
+import Interfaces_Comp from "./Interfaces";
 
 
 
@@ -267,10 +268,14 @@ const Header: React.FC = () => {
                     alignItems: "center",
                     marginTop:'-30px',
                     marginLeft:"10px",
+                    flexDirection: "row",
                     
                           }}>
+                            
 
-<Top_Table_Element Data={
+
+
+<Interfaces_Comp Data={
   
 
     Interfaces.map((interfaceName) => {
@@ -279,7 +284,7 @@ const Header: React.FC = () => {
     
 
 }  ElementName="Interfaces" Icon={<KeyboardArrowDownIcon style={{
-                    color: "#326591",
+                    color: "#000000",
                     fontSize: "23px",
                     marginTop: "5px",
                 }}/>}

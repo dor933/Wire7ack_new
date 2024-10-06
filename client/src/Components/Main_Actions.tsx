@@ -16,11 +16,13 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
 
     const {chosenInterface,setChosenInterface} = useGlobal();
     const {isCaptureStarted,setIsCaptureStarted} = useGlobal();
+    const {ChosenFields,setChosenFields} = useGlobal();
 
 
     const handlestart = () => {
         axios.post('http://localhost:8000/api/start', {
             interfaceName: chosenInterface,
+            fields: ChosenFields,
         })
         .then((response) => {
             console.log(response);
@@ -31,6 +33,21 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
         });
     }
 
+    const handlestop = () => {
+        axios.get('http://localhost:8000/api/stop')
+        .then((response) => {
+            console.log(response);
+        })
+        .catch((error) => {
+            console.log(error); 
+        },)
+        .finally(() => {
+            setIsCaptureStarted(false);}
+        
+
+        );
+    }
+
 
 
 
@@ -38,7 +55,7 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
     const isxl= useMediaQuery('(min-width:1920px)');
 
     return(
-        <Grid onClick={props.ActionName==='Start'? ()=> handlestart() : ()=> handlestart()} container item xs={4} xl={3} style={{
+        <Grid onClick={props.ActionName==='Start' && !isCaptureStarted? ()=> handlestart() : props.ActionName==='Start'&& isCaptureStarted? ()=> handlestop(): ()=> handlestart()} container item xs={4} xl={3} style={{
             display: "flex",
             padding: "10px 15px",
             alignItems: "center",
