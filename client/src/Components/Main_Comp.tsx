@@ -17,6 +17,7 @@ import { Visibility } from "@mui/icons-material";
 import Filter_Button from "./Filter_Button";
 import { FormControlLabel } from "@mui/material";
 import { useGlobal,GlobalProvider } from "./Context/Global";
+import {  Typography, useTheme } from '@mui/material';
 
 interface Main_CompProps {
     rows:Stream[],
@@ -28,6 +29,9 @@ interface Main_CompProps {
 
 const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
+  const theme= useTheme();
+
+  
     const newrows=props.rows;
     const {ChosenFields,setChosenFields}=useGlobal();
     const [ProtocolFilter, setProtocolFilter] = useState<string>('');
@@ -71,6 +75,10 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
   
     
 
+    useEffect(() => {
+      console.log('those are chosen fields',ChosenFields);
+  }
+  ,[ChosenFields]);
 
 
     console.log('new rows are',newrows);
@@ -182,63 +190,88 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 justifyContent:"space-between",
              
             }}>
-                      <Box
-  style={{
-    color: "#304C57",
-    fontFamily: "Roboto",
-    fontSize: "16px",
-    fontWeight: "500",
-    lineHeight: "normal",
-    
-    display: "flex",
-    flexDirection: "column", // This makes the content flow into two rows
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    margin: "auto",
-    opacity: isfiltervisible ? "1" : "0",
-  }}
->
-  <div    style={{
-      display: "flex",
-      alignItems: "center",
-      marginBottom: "8px", // Adds space between rows
-    }}>
-    <span style={{ fontWeight: ChosenFields.hasOwnProperty("ip host 1")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("ip host 1") ? "#0d0da3" : "#304C57", 
+                       <Box
+      sx={{
+        backgroundColor: theme.palette.background.paper,
+        border: '1px solid',
+        borderColor: 'rgba(13, 13, 163, 0.5)', // light blue border
+        borderRadius: 2,
+        padding: 2,
+        boxShadow: '0 4px 8px rgba(13, 13, 163, 0.2)', // subtle shadow for elevation
+        opacity: isfiltervisible ? 1 : 0,
+        transition: 'opacity 0.3s ease',
+        maxWidth: 400,
+        margin: 'auto',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2, // Vertical spacing between rows
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography
+            sx={{
+              fontWeight: ChosenFields.hasOwnProperty('ip host 1') ? 600 : 400,
+              color: ChosenFields.hasOwnProperty('ip host 1')
+                ? 'rgba(13, 13, 163, 0.8)'
+                : '#304C57',
+              minWidth: 100,
+              flexGrow: 1,
+              fontFamily: "Roboto",
+            }}
+          >
+            IP Host 1
+          </Typography>
+          <Typography
+            sx={{
+              fontWeight: ChosenFields.hasOwnProperty('ip host 2') ? 600 : 400,
+              color: Object.keys(ChosenFields)
+  .some((key) => key.toLowerCase() === 'ip host 2'.toLowerCase())
+  ? "rgba(13, 13, 163, 0.8)"
+  : "#304C57",
+              minWidth: 100,
+              flexGrow: 1,
+              fontFamily: "Roboto",
 
-    }}>ip host 1</span>
- 
- <span style={{ fontWeight: ChosenFields.hasOwnProperty("ip host 2")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("ip host 2") ? "#0d0da3" : "#304C57", 
-  
-      }}> 
-    ip host 2</span>
-   
- 
-        
-     
-  </div>
+            }}
+          >
+            IP Host 2
+          </Typography>
+        </Box>
 
-  <div    style={{
-      display: "flex",
-      alignItems: "center",
-      marginBottom: "8px", // Adds space between rows
-  
-  }}>
-     
- <span style={{ fontWeight: ChosenFields.hasOwnProperty("Validity")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("Validity") ? "#0d0da3" : "#304C57", 
-  
-}}> 
-  Validity</span>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography
+            sx={{
+              fontWeight: ChosenFields.hasOwnProperty('Validity') ? 600 : 400,
+              color: ChosenFields.hasOwnProperty('Validity')
+                ? 'rgba(13, 13, 163, 0.8)'
+                : '#304C57',
+              minWidth: 100,
+              flexGrow: 1,
+              fontFamily: "Roboto",
 
- 
-  <span style={{ fontWeight: ChosenFields.hasOwnProperty("Protocol")? 500:400 ,minWidth:"100px",flexGrow:1, color: ChosenFields.hasOwnProperty("Protocol") ? "#0d0da3" : "#304C57", 
-  
-}}> 
-   Protocol</span>
-      
-  </div>
-  
-</Box>
-          
+            }}
+          >
+            Validity
+          </Typography>
+          <Typography
+            sx={{
+              fontWeight: ChosenFields.hasOwnProperty('Protocol') ? 600 : 400,
+              color: ChosenFields.hasOwnProperty('Protocol')
+                ? 'rgba(13, 13, 163, 0.8)'
+                : '#304C57',
+              minWidth: 100,
+              flexGrow: 1,
+            }}
+          >
+            Protocol
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
        
                
 

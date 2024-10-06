@@ -9,6 +9,7 @@ router.post('/start',(req: Request, res: Response) => {
 
       const { interfaceName,fields } = req.body;
       
+      console.log('this is fields',fields);
       const result = startMainProcess(interfaceName,fields);
       res.send(result);
     } catch (error) {

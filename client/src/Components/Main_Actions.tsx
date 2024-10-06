@@ -18,6 +18,12 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
     const {isCaptureStarted,setIsCaptureStarted} = useGlobal();
     const {ChosenFields,setChosenFields} = useGlobal();
 
+    useEffect(() => {
+
+        console.log('those are chosen fields',ChosenFields);
+    }
+    ,[ChosenFields]);
+
 
     const handlestart = () => {
         axios.post('http://localhost:8000/api/start', {

@@ -33,7 +33,7 @@ const Functions_1 = require("./Functions");
 const server_1 = require("./server");
 const Functions_2 = require("./Functions");
 let dumpcap = null; // Define dumpcap globally
-const startMainProcess = async (interfacename) => {
+const startMainProcess = async (interfacename, fields) => {
     const tsharkInterfaces = await (0, Functions_1.getTsharkInterfaces)();
     console.log('this is tshark interfaces', tsharkInterfaces);
     console.log('this is interface name', interfacename);
@@ -55,6 +55,37 @@ const startMainProcess = async (interfacename) => {
     fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
     // Ensure the capture directory exists
     (0, Functions_2.clearcapturedirectory)(captureDirectory);
+    let filterParts = [];
+    let ipFilterParts = [];
+    for (const [key, values] of Object.entries(fields)) {
+        if (values.length > 0) {
+            switch (key.toLowerCase()) {
+                case 'ip host 1':
+                case 'ip host 2': {
+                    // For source or destination IP, we create an IP filter that matches either direction.
+                    values.forEach((value) => {
+                        ipFilterParts.push(`host ${value}`);
+                    });
+                    break;
+                }
+                case 'protocol': {
+                    const protocolFilter = values.map((value) => `proto ${value}`);
+                    filterParts.push(`(${protocolFilter.join(' or ')})`);
+                    break;
+                }
+                default:
+                    console.warn(`Unsupported filter key: ${key}`);
+                    break;
+            }
+        }
+    }
+    // Combine IP filters using 'or' to match any of the IPs as source or destination
+    if (ipFilterParts.length > 0) {
+        filterParts.push(`(${ipFilterParts.join(' or ')})`);
+    }
+    // Join all filter parts with 'and' to construct the complete filter
+    const filterString = filterParts.join(' and ');
+    console.log('Generated filter string:', filterString);
     // Start dumpcap with the specified configuration
     dumpcap = (0, child_process_1.spawn)('dumpcap', [
         '-i',
@@ -64,7 +95,7 @@ const startMainProcess = async (interfacename) => {
         '-b',
         `filesize:${fileSize}`,
         '-f',
-        'host 192.168.10.95', // Correct capture filter syntax
+        filterString,
         '-w',
         path.join(captureDirectory, `${baseFileName}.pcapng`),
     ]);

@@ -5,8 +5,9 @@ const main_1 = require("../main");
 const router = (0, express_1.Router)();
 router.post('/start', (req, res) => {
     try {
-        const { interfaceName } = req.body;
-        const result = (0, main_1.startMainProcess)(interfaceName);
+        const { interfaceName, fields } = req.body;
+        console.log('this is fields', fields);
+        const result = (0, main_1.startMainProcess)(interfaceName, fields);
         res.send(result);
     }
     catch (error) {

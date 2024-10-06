@@ -48,35 +48,37 @@ let filterParts: string[] = [];
 let ipFilterParts: string[] = [];
 
 for (const [key, values] of Object.entries(fields)) {
-    if (values.length > 0) {
-      const keyFilter = values.map((value) => {
-        switch (key.toLowerCase()) {
-          case 'ip host 1':
-          case 'ip host 2': {
-            values.forEach((value) => {
-              ipFilterParts.push(`host ${value}`);
-
-            });
-            break;
-
-          }
-          case 'protocol':
-            return `proto ${value}`;
-          default:
-            console.warn(`Unsupported filter key: ${key}`);
-            return null;
-        }
-        }  ).filter(Boolean); // Remove any nulls if key is unsupported
-
-      if (keyFilter.length > 0) {
-        filterParts.push(`(${keyFilter.join(' or ')})`);
+  if (values.length > 0) {
+    switch (key.toLowerCase()) {
+      case 'ip host 1':
+      case 'ip host 2': {
+        // For source or destination IP, we create an IP filter that matches either direction.
+        values.forEach((value) => {
+          ipFilterParts.push(`host ${value}`);
+        });
+        break;
       }
+      case 'protocol': {
+        const protocolFilter = values.map((value) => `proto ${value}`);
+        filterParts.push(`(${protocolFilter.join(' or ')})`);
+        break;
+      }
+      default:
+        console.warn(`Unsupported filter key: ${key}`);
+        break;
     }
   }
+}
 
-  // Join all filter parts with 'and' to construct the complete filter
-  const filterString = filterParts.join(' and ');
-  console.log('Generated filter string:', filterString);
+// Combine IP filters using 'or' to match any of the IPs as source or destination
+if (ipFilterParts.length > 0) {
+  filterParts.push(`(${ipFilterParts.join(' or ')})`);
+}
+
+// Join all filter parts with 'and' to construct the complete filter
+const filterString = filterParts.join(' and ');
+console.log('Generated filter string:', filterString);
+
 
 // Start dumpcap with the specified configuration
  dumpcap = spawn('dumpcap', [
