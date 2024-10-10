@@ -8,6 +8,12 @@ export class Activation {
       public Status: string,
       public destIPs: string,
       public sourceIPs: string,
-      public protocol: string
+      public protocol: string,
+      public host1filter: string,
+      public host2filter: string,
+      public port1filter: string,
+      public port2filter: string,
+      //.. and go on
+
     ) {}
   }

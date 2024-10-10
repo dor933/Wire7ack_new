@@ -2,8 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Stream = void 0;
 class Stream {
-    constructor(Index, connectionID, SourceIP, DestinationIP, ActivationID, Packets, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
-        this.Index = Index;
+    constructor(connectionID, SourceIP, DestinationIP, ActivationID, Packets, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
         this.connectionID = connectionID;
         this.SourceIP = SourceIP;
         this.DestinationIP = DestinationIP;

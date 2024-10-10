@@ -12,8 +12,8 @@ const Stream_1 = require("./shared/Stream");
 const fs_1 = __importDefault(require("fs"));
 const json_bigint_1 = __importDefault(require("json-bigint"));
 let indexer = 0;
-function Create_Stream(Index, connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
-    return new Stream_1.Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
+function Create_Stream(connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
+    return new Stream_1.Stream(connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
 }
 function Assign_Packet_To_Stream(packet, Streams) {
     let Relevant_stream = Streams.find(stream => stream.connectionID === packet.connectionID && stream.ActivationID === packet.ActivationID && stream.Protocol === packet.Protocol && ((stream.SourceIP === packet.SourceIP || stream.SourceIP === packet.DestinationIP) && (stream.DestinationIP === packet.DestinationIP || stream.DestinationIP === packet.SourceIP)));
@@ -23,7 +23,7 @@ function Assign_Packet_To_Stream(packet, Streams) {
         return false;
     }
     Relevant_stream.Packets.push(packet);
-    fs_1.default.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' found in stream ' + Relevant_stream.Index + '\n');
+    fs_1.default.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' found in stream ' + Relevant_stream.connectionID + 'in activation' + packet.ActivationID + '\n');
     return Relevant_stream;
 }
 async function Check_Stream_Validity(stream) {
@@ -104,7 +104,7 @@ function processCaptureFile(filePath, ws, Streams, callback) {
                 let assignedStream = Assign_Packet_To_Stream(packet, Streams);
                 if (!assignedStream) {
                     // Create a new stream
-                    let newStream = Create_Stream(Streams.length + 1, packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
+                    let newStream = Create_Stream(packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
                     newStream.Packets.push(packet);
                     Streams.push(newStream);
                 }

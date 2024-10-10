@@ -64,7 +64,6 @@ const Main: React.FC = () => {
 
             // Create and return a new Stream instance
             return new Stream(
-              item.Index,
               item.connectionID,
               item.SourceIP,
               item.DestinationIP,
