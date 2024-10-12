@@ -11,7 +11,9 @@ const ws_1 = require("ws");
 const Stream_1 = require("./shared/Stream");
 const fs_1 = __importDefault(require("fs"));
 const json_bigint_1 = __importDefault(require("json-bigint"));
-let indexer = 0;
+const dbops_1 = require("./dbops");
+const main_1 = require("./main");
+let lastpacketid = 0;
 function Create_Stream(Index, connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
     return new Stream_1.Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
 }
@@ -81,61 +83,72 @@ async function Check_Stream_Validity(stream) {
     }
     stream.validity = !invalid;
 }
-function processCaptureFile(filePath, ws, Streams, callback) {
+async function processCaptureFile(filePath, ws, Streams, dbConnection, callback) {
     console.log(`Processing file: ${filePath}`);
     // Convert pcapng to JSON using tshark
     const tsharkCommand = `tshark -r "${filePath}" -T json`;
     const maxBuffer = 10000000000; // Increase buffer size if needed
-    (0, child_process_1.exec)(tsharkCommand, { maxBuffer: maxBuffer }, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error processing ${filePath}: ${error.message}`);
-            callback();
-            return;
-        }
-        try {
-            const JSONbigNative = (0, json_bigint_1.default)({ useNativeBigInt: true });
-            const packetsArray = JSONbigNative.parse(stdout);
-            // Process each packet
-            packetsArray.forEach((packetObj) => {
-                fs_1.default.appendFileSync('tshark_output.log', JSON.stringify(packetObj) + '\n');
-                const packet = fromWiresharkToPacketObject(packetObj);
-                // Log packet information (optional)
-                // Process the packet (e.g., assign to streams)
-                let assignedStream = Assign_Packet_To_Stream(packet, Streams);
-                if (!assignedStream) {
-                    // Create a new stream
-                    let newStream = Create_Stream(Streams.length + 1, packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
-                    newStream.Packets.push(packet);
-                    Streams.push(newStream);
-                }
-            });
-            // After processing all packets, check validity of streams
-            Streams.forEach((stream) => {
-                Check_Stream_Validity(stream);
-                // Convert BigInt fields to strings if necessary
-                stream.DataVolume = stream.DataVolume.toString();
-            });
-            // Send the full Streams array through the WebSocket
-            const streamsData = JSON.stringify(Streams);
-            // Send data to all connected clients
-            ws.clients.forEach((client) => {
-                if (client.readyState === ws_1.WebSocket.OPEN) {
-                    client.send(streamsData);
-                }
-            });
-            console.log(`Finished processing file: ${filePath}`);
-            // Clear Streams array if needed
-            Streams.length = 0;
-            callback();
-        }
-        catch (parseError) {
-            console.error(`Error parsing JSON from ${filePath}: ${parseError.message}`);
-            callback();
-        }
+    await new Promise((resolve, reject) => {
+        (0, child_process_1.exec)(tsharkCommand, { maxBuffer: maxBuffer }, async (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error processing ${filePath}: ${error.message}`);
+                callback();
+                return;
+            }
+            try {
+                const JSONbigNative = (0, json_bigint_1.default)({ useNativeBigInt: true });
+                const packetsArray = JSONbigNative.parse(stdout);
+                // Process each packet
+                packetsArray.forEach((packetObj) => {
+                    fs_1.default.appendFileSync('tshark_output.log', JSON.stringify(packetObj) + '\n');
+                    const packet = fromWiresharkToPacketObject(packetObj);
+                    // Log packet information (optional)
+                    // Process the packet (e.g., assign to streams)
+                    let assignedStream = Assign_Packet_To_Stream(packet, Streams);
+                    if (!assignedStream) {
+                        // Create a new stream
+                        let newStream = Create_Stream(Streams.length + 1, packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
+                        newStream.Packets.push(packet);
+                        Streams.push(newStream);
+                    }
+                });
+                const invalidStreams = [];
+                // After processing all packets, check validity of streams
+                Streams.forEach((stream) => {
+                    Check_Stream_Validity(stream);
+                    if (!stream.validity) {
+                        invalidStreams.push(stream);
+                    }
+                    // Convert BigInt fields to strings if necessary
+                    stream.DataVolume = stream.DataVolume.toString();
+                });
+                lastpacketid = await (0, dbops_1.getLastPacketId)(dbConnection);
+                await (0, dbops_1.writeInvalidStreamsToDatabase)(invalidStreams, dbConnection, lastpacketid);
+                // Send the full Streams array through the WebSocket
+                const streamsData = JSON.stringify(Streams);
+                // Send data to all connected clients
+                ws.clients.forEach((client) => {
+                    if (client.readyState === ws_1.WebSocket.OPEN) {
+                        client.send(streamsData);
+                    }
+                });
+                console.log(`Finished processing file: ${filePath}`);
+                // Clear Streams array if needed
+                Streams.length = 0;
+                callback();
+                resolve();
+            }
+            catch (parseError) {
+                console.error(`Error parsing JSON from ${filePath}: ${parseError.message}`);
+                callback();
+                resolve();
+            }
+        });
     });
 }
 // Function to convert Wireshark JSON packet to your Packet object
 function fromWiresharkToPacketObject(packetObj) {
+    var _a;
     const layers = packetObj._source.layers;
     const frame = layers.frame;
     const eth = layers.eth;
@@ -234,7 +247,7 @@ function fromWiresharkToPacketObject(packetObj) {
         ipChecksumStatus = parseInt(ip['ip.checksum.status']) || undefined;
     }
     const packet = new Packet_1.Packet(PacketID, SourceIP, DestinationIP, Protocol, '', // Payload can be extracted if needed
-    Timestamp, Size, ActivationID, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, tcpFlags, tcpSeq, tcpAck, tcpChecksumStatus, udpChecksumStatus, arpOpcode, ipChecksumStatus, false, // errorIndicator, initially false
+    Timestamp, Size, (_a = main_1.currentactivation === null || main_1.currentactivation === void 0 ? void 0 : main_1.currentactivation.ActivationID) !== null && _a !== void 0 ? _a : 0, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, tcpFlags, tcpSeq, tcpAck, tcpChecksumStatus, udpChecksumStatus, arpOpcode, ipChecksumStatus, false, // errorIndicator, initially false
     icmpType, icmpCode, icmpChecksumStatus);
     return packet;
 }

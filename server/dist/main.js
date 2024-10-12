@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stopMainProcess = exports.startMainProcess = void 0;
+exports.stopMainProcess = exports.startMainProcess = exports.currentactivation = void 0;
 const child_process_1 = require("child_process");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
@@ -32,8 +32,19 @@ const file_watcher_1 = require("./file_watcher");
 const Functions_1 = require("./Functions");
 const server_1 = require("./server");
 const Functions_2 = require("./Functions");
-let dumpcap = null; // Define dumpcap globally
+const dbConnection_1 = require("./dbConnection");
+const Activation_1 = require("./shared/Activation");
+const dbops_1 = require("./dbops");
+let dumpcap = null;
+exports.currentactivation = null; // Define dumpcap globally
 const startMainProcess = async (interfacename, fields) => {
+    const dbConnection = await (0, dbConnection_1.getDbConnection)();
+    console.log('this is db connection', dbConnection);
+    //find the ip host 1 key in the fields object
+    const [iphost1, iphost2, iphost3, iphost4] = Object.keys(fields).filter(key => key.toLowerCase().includes('ip host'));
+    const [iphost1value, iphost2value, iphost3value, iphost4value] = Object.values(fields).filter(value => value.length > 0);
+    const activation = new Activation_1.Activation(0, 0, new Date(Date.now()), new Date(Date.now()), "", "", iphost1value[0] || "", iphost2value[0] || "", iphost3value[0] || "", iphost4value[0] || "", "");
+    exports.currentactivation = await (0, dbops_1.writeActivationToDb)(dbConnection, activation);
     const tsharkInterfaces = await (0, Functions_1.getTsharkInterfaces)();
     console.log('this is tshark interfaces', tsharkInterfaces);
     console.log('this is interface name', interfacename);
@@ -107,7 +118,7 @@ const startMainProcess = async (interfacename, fields) => {
     });
     // Start the WebSocket server
     // Start the file watcher and pass the WebSocket server to it
-    (0, file_watcher_1.startFileWatcher)(captureDirectory, server_1.wsServer);
+    (0, file_watcher_1.startFileWatcher)(captureDirectory, server_1.wsServer, dbConnection);
     return "Main process started successfully";
 };
 exports.startMainProcess = startMainProcess;

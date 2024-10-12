@@ -8,13 +8,15 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { Stream } from './shared/Stream';
 import { stopMainProcess } from './main';
 import { clearcapturedirectory } from './Functions';
+import { ConnectionPool } from 'mssql';
 
 const Streams: Stream[] = [];
 let watcher: chokidar.FSWatcher | null = null;
 
 export function startFileWatcher(
   captureDirectory: string,
-  wsServer: WebSocketServer
+  wsServer: WebSocketServer,
+  dbConnection: ConnectionPool
 ): void {
  
   const processedFiles: Set<string> = new Set();
@@ -40,11 +42,11 @@ export function startFileWatcher(
   watcher
     .on('add', (filePath: string) => {
       console.log(`File added: ${filePath}`);
-      handleFile(filePath, wsServer, processedFiles);
+      handleFile(filePath, wsServer, processedFiles, dbConnection);
     })
     .on('change', (filePath: string) => {
       console.log(`File changed: ${filePath}`);
-      handleFile(filePath, wsServer, processedFiles);
+      handleFile(filePath, wsServer, processedFiles, dbConnection);
     })
     .on('error', (error: Error) => {
       console.error(`Watcher error: ${error.message}`);
@@ -64,7 +66,8 @@ export function stopFileWatcher(onComplete: () => void,capturedirectory:string):
 function handleFile(
   filePath: string,
   ws: WebSocketServer,
-  processedFiles: Set<string>
+  processedFiles: Set<string>,
+  dbConnection: ConnectionPool
 ): void {
   if (processedFiles.has(filePath)) return;
 
@@ -85,7 +88,7 @@ function handleFile(
     else{
       console.log('File size is greater than 3 MB, processing.');
       processedFiles.add(filePath);
-      processCaptureFile(filePath,ws,Streams, () => {
+      processCaptureFile(filePath,ws,Streams, dbConnection, () => {
         // After processing, delete the file
 
         fs.unlink(filePath, (err) => {

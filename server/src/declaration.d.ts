@@ -71,3 +71,6 @@ declare module 'json-bigint' {
   
     export function streamArray(options?: StreamArrayOptions): Transform;
   }
+
+  //declate module ConnectionPool
+

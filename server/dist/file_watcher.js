@@ -33,7 +33,7 @@ const main_1 = require("./main");
 const Functions_1 = require("./Functions");
 const Streams = [];
 let watcher = null;
-function startFileWatcher(captureDirectory, wsServer) {
+function startFileWatcher(captureDirectory, wsServer, dbConnection) {
     const processedFiles = new Set();
     // Watch the capture directory for new or changed files
     const watcher = chokidar.watch(`${captureDirectory}`, {
@@ -52,11 +52,11 @@ function startFileWatcher(captureDirectory, wsServer) {
     watcher
         .on('add', (filePath) => {
         console.log(`File added: ${filePath}`);
-        handleFile(filePath, wsServer, processedFiles);
+        handleFile(filePath, wsServer, processedFiles, dbConnection);
     })
         .on('change', (filePath) => {
         console.log(`File changed: ${filePath}`);
-        handleFile(filePath, wsServer, processedFiles);
+        handleFile(filePath, wsServer, processedFiles, dbConnection);
     })
         .on('error', (error) => {
         console.error(`Watcher error: ${error.message}`);
@@ -66,7 +66,7 @@ function stopFileWatcher(onComplete, capturedirectory) {
     (0, main_1.stopMainProcess)();
     (0, Functions_1.clearcapturedirectory)(capturedirectory);
 }
-function handleFile(filePath, ws, processedFiles) {
+function handleFile(filePath, ws, processedFiles, dbConnection) {
     if (processedFiles.has(filePath))
         return;
     // Check if the file is ready (no longer being written to)
@@ -83,7 +83,7 @@ function handleFile(filePath, ws, processedFiles) {
         else {
             console.log('File size is greater than 3 MB, processing.');
             processedFiles.add(filePath);
-            (0, packet_processor_1.processCaptureFile)(filePath, ws, Streams, () => {
+            (0, packet_processor_1.processCaptureFile)(filePath, ws, Streams, dbConnection, () => {
                 // After processing, delete the file
                 fs.unlink(filePath, (err) => {
                     if (err) {

@@ -10,10 +10,22 @@ import { WebSocketServer } from 'ws';
 import { wsServer } from './server';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { clearcapturedirectory } from './Functions';
+import { getDbConnection } from './dbConnection';
+import { Activation } from './shared/Activation';
+import { writeActivationToDb } from './dbops';
 
-let dumpcap: ChildProcessWithoutNullStreams | null = null; // Define dumpcap globally
+let dumpcap: ChildProcessWithoutNullStreams | null = null;
+export let currentactivation:Activation|null=null;// Define dumpcap globally
 
 export const startMainProcess = async (interfacename:string,fields:Record<string,string[]>) => {
+
+  const dbConnection = await getDbConnection();
+  console.log('this is db connection', dbConnection);
+  //find the ip host 1 key in the fields object
+  const [iphost1,iphost2,iphost3,iphost4]=Object.keys(fields).filter(key => key.toLowerCase().includes('ip host'));
+  const [iphost1value,iphost2value,iphost3value,iphost4value]=Object.values(fields).filter(value => value.length > 0);
+  const activation= new Activation(0,0,new Date(Date.now()),new Date(Date.now()),"","",iphost1value[0]||"",iphost2value[0]||"",iphost3value[0]||"",iphost4value[0]||"","");
+  currentactivation= await writeActivationToDb(dbConnection,activation)
 
   const tsharkInterfaces = await getTsharkInterfaces();
   console.log('this is tshark interfaces', tsharkInterfaces);
@@ -32,6 +44,8 @@ export const startMainProcess = async (interfacename:string,fields:Record<string
   
 
   console.log('this is interface index', interfaceIndex);
+
+
 const captureDirectory = path.join(__dirname, 'captures');
 const baseFileName = 'capture';
 const numberOfFiles = 10; // Number of files in the ring buffer
@@ -105,7 +119,7 @@ dumpcap.on('close', (code: number) => {
 // Start the WebSocket server
 
 // Start the file watcher and pass the WebSocket server to it
-startFileWatcher(captureDirectory, wsServer);
+startFileWatcher(captureDirectory, wsServer, dbConnection);
 
 return "Main process started successfully";
 }

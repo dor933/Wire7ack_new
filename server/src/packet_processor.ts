@@ -6,8 +6,12 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { Stream } from './shared/Stream';
 import fs, { write } from 'fs';
 import JSONBig from 'json-bigint';
+import { ConnectionPool } from 'mssql';
+import { writeInvalidStreamsToDatabase, getLastPacketId } from './dbops';
+import { currentactivation } from './main';
 
-let indexer=0;
+
+let lastpacketid=0;
 
  function Create_Stream(Index:number,connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
     return new Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
@@ -87,12 +91,13 @@ async function Check_Stream_Validity(stream: Stream): Promise<void> {
 }
 
 
-export function processCaptureFile(
+export async function processCaptureFile(
   filePath: string,
   ws: WebSocketServer,
   Streams: Stream[],
+  dbConnection: ConnectionPool,
   callback: () => void
-): void {
+): Promise<void> {
   console.log(`Processing file: ${filePath}`);
 
   // Convert pcapng to JSON using tshark
@@ -100,7 +105,7 @@ export function processCaptureFile(
 
   const maxBuffer: number = 10_000_000_000; // Increase buffer size if needed
 
-  exec(tsharkCommand, { maxBuffer: maxBuffer }, (error, stdout, stderr) => {
+  await new Promise<void>((resolve, reject) => { exec(tsharkCommand, { maxBuffer: maxBuffer }, async (error, stdout, stderr) => {
     if (error) {
       console.error(`Error processing ${filePath}: ${error.message}`);
       callback();
@@ -147,12 +152,20 @@ export function processCaptureFile(
         } 
       });
 
+      const invalidStreams: Stream[] = [];
       // After processing all packets, check validity of streams
       Streams.forEach((stream) => {
         Check_Stream_Validity(stream);
+        if (!stream.validity) {
+          invalidStreams.push(stream);
+        }
         // Convert BigInt fields to strings if necessary
         stream.DataVolume = stream.DataVolume.toString();
       });
+
+      lastpacketid=await getLastPacketId(dbConnection);
+
+      await writeInvalidStreamsToDatabase(invalidStreams, dbConnection,lastpacketid);
 
       // Send the full Streams array through the WebSocket
       const streamsData = JSON.stringify(Streams);
@@ -170,13 +183,16 @@ export function processCaptureFile(
       Streams.length = 0;
 
       callback();
+      resolve();
     } 
     
     
     catch (parseError: any) {
       console.error(`Error parsing JSON from ${filePath}: ${parseError.message}`);
       callback();
+      resolve();
     }
+  });
   });
 }
 
@@ -293,7 +309,7 @@ function fromWiresharkToPacketObject(packetObj: any): Packet {
     '', // Payload can be extracted if needed
     Timestamp,
     Size,
-    ActivationID,
+    currentactivation?.ActivationID??0,
     sourceMAC,
     destinationMAC,
     sourcePort,

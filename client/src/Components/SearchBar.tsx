@@ -8,8 +8,8 @@ type Searchtypes = 'Quick Action' | 'Search';
 
 interface SearchBarProps {
   SearchType: Searchtypes;
-  Fields?: Record<string, string[]>;
-  setChosenFields?: React.Dispatch<React.SetStateAction<Record<string, string[]>>>; // Allows parent to set chosen fields
+  Fields?: Record<string, string>;
+  setChosenFields?: React.Dispatch<React.SetStateAction<Record<string, string>>>; // Allows parent to set chosen fields
 }
 
 export default function SearchBar(props: SearchBarProps) {
@@ -25,15 +25,14 @@ export default function SearchBar(props: SearchBarProps) {
     // Split the input by ', ' to separate the fields
     const fieldEntries = inputValue.split(' , ').map(entry => entry.trim());
   
-    const newFields: Record<string, string[]> = {};
+    const newFields: Record<string, string> = {};
   
     fieldEntries.forEach(entry => {
       const [field, valuesString] = entry.split(':').map(part => part.trim());
   
       if (field && valuesString) {
         // Split the valuesString by ',' to get individual values
-        const values = valuesString.split(',').map(value => value.trim());
-        newFields[field] = values;
+        newFields[field] = valuesString;
       }
     });
 

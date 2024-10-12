@@ -2,6 +2,10 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
+import { Stream } from './shared/Stream';
+import { Packet } from './shared/Packet';
+import { getDbConnection } from './dbConnection';
+import { Activation } from './shared/Activation';
 
 const execAsync = promisify(exec);
 
@@ -35,5 +39,7 @@ if (!fs.existsSync(capturedirectory)) {
   }
   // Ensure the capture directory exists
 }
+
+
 
 export { getTsharkInterfaces,clearcapturedirectory };
