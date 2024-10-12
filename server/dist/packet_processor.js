@@ -25,7 +25,7 @@ function Assign_Packet_To_Stream(packet, Streams) {
         return false;
     }
     Relevant_stream.Packets.push(packet);
-    fs_1.default.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' found in stream ' + Relevant_stream.Index + '\n');
+    fs_1.default.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' found in stream ' + Relevant_stream.connectionID + 'in activation' + packet.ActivationID + '\n');
     return Relevant_stream;
 }
 async function Check_Stream_Validity(stream) {

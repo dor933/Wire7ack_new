@@ -3,7 +3,6 @@ import { Packet } from "./Packet";
 
 export class Stream {
     constructor(
-      public Index: number,
       public connectionID: number,
       public SourceIP: string,
       public DestinationIP: string,
@@ -16,6 +15,7 @@ export class Stream {
       public Duration: number,
       public PacketCount: number,
       public DataVolume: bigint|string,
-      public ApplicationProtocol: string
+      public ApplicationProtocol: string,
+      public index?: number,
     ) {}
   }

@@ -90,7 +90,13 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
   // Function to update filtered rows based on filters
   const changeFilteredRows = () => {
+    let index=0;
     let tempRows = visiblerows.filter((row) => {
+
+      row.index=index;
+      index++;
+      
+
       if (ProtocolFilter !== '' && row.Protocol !== ProtocolFilter) {
         return false;
       }
@@ -207,9 +213,9 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                       <IconButton
                         aria-label="expand row"
                         size="small"
-                        onClick={() => toggleRow(row.Index)}
+                        onClick={() => toggleRow(index)}
                       >
-                        {openRows[row.Index] ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
+                        {openRows[row.index!] ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
                       </IconButton>
                     </TableCell>
                     <TableCell>{row.connectionID}</TableCell>
@@ -225,7 +231,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                   {/* Collapsible Row for Packets */}
                   <TableRow>
                     <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
-                      <Collapse in={openRows[row.Index]} timeout="auto" unmountOnExit>
+                      <Collapse in={openRows[row.index!]} timeout="auto" unmountOnExit>
                         <Box margin={1}>
                           <TableContainer sx={{ overflowX: 'auto' }}>
                             <h4>Packets</h4>

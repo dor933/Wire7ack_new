@@ -13,8 +13,8 @@ import { currentactivation } from './main';
 
 let lastpacketid=0;
 
- function Create_Stream(Index:number,connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
-    return new Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
+ function Create_Stream(connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
+    return new Stream( connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
 
 function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean|Stream {
 
@@ -25,7 +25,7 @@ function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean|St
         return false;
     }
     Relevant_stream.Packets.push(packet);
-    fs.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' found in stream ' + Relevant_stream.Index + '\n');
+    fs.appendFileSync('tshark_output.log', 'packet ' + packet.PacketID + ' found in stream ' + Relevant_stream.connectionID + 'in activation' + packet.ActivationID+ '\n');
     return Relevant_stream;
 
 }
@@ -133,7 +133,6 @@ export async function processCaptureFile(
         if (!assignedStream) {
           // Create a new stream
           let newStream = Create_Stream(
-            Streams.length + 1,
             packet.connectionID,
             packet.SourceIP,
             packet.DestinationIP,

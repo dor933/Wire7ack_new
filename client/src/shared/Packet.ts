@@ -5,6 +5,7 @@ export class Packet {
     public DestinationIP: string,
     public Protocol: string,
     public Payload: string,
+    public Validity: boolean,
     public Timestamp: Date,
     public Size: number,
     public ActivationID: number,

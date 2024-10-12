@@ -3,8 +3,11 @@ export class User {
       public userID: number,
       public Username: string,
       public password: string,
-      public role: string,
+      public RoleID: number,
+      public RoleName: string,
       public CreationDate: Date,
-      public roleID: number
+      public Email: string,
+      public isAdmin: boolean,
+      public LinktoImage: string,
     ) {}
   }
