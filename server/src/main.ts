@@ -17,14 +17,13 @@ import { writeActivationToDb } from './dbops';
 let dumpcap: ChildProcessWithoutNullStreams | null = null;
 export let currentactivation:Activation|null=null;// Define dumpcap globally
 
-export const startMainProcess = async (interfacename:string,fields:Record<string,string[]>) => {
+export const startMainProcess = async (interfacename:string,fields:Record<string,string>) => {
 
   const dbConnection = await getDbConnection();
   console.log('this is db connection', dbConnection);
   //find the ip host 1 key in the fields object
-  const [iphost1,iphost2,iphost3,iphost4]=Object.keys(fields).filter(key => key.toLowerCase().includes('ip host'));
-  const [iphost1value,iphost2value,iphost3value,iphost4value]=Object.values(fields).filter(value => value.length > 0);
-  const activation= new Activation(0,0,new Date(Date.now()),new Date(Date.now()),"","",iphost1value[0]||"",iphost2value[0]||"",iphost3value[0]||"",iphost4value[0]||"","");
+  const [iphost1,iphost2,iphost3,iphost4]=Object.values(fields).filter(value => value.length > 0);
+  const activation= new Activation(0,0,new Date(Date.now()),new Date(Date.now()),"","",iphost1[0]||"",iphost2[0]||"",iphost3[0]||"",iphost4[0]||"","");
   currentactivation= await writeActivationToDb(dbConnection,activation)
 
   const tsharkInterfaces = await getTsharkInterfaces();
@@ -61,24 +60,24 @@ clearcapturedirectory(captureDirectory);
 let filterParts: string[] = [];
 let ipFilterParts: string[] = [];
 
-for (const [key, values] of Object.entries(fields)) {
-  if (values.length > 0) {
-    switch (key.toLowerCase()) {
+for (const obj of Object.entries(fields)) {
+  if (obj.length > 0) {
+    switch (obj[0].toLowerCase()) {
       case 'ip host 1':
       case 'ip host 2': {
         // For source or destination IP, we create an IP filter that matches either direction.
-        values.forEach((value) => {
-          ipFilterParts.push(`host ${value}`);
-        });
+        
+          ipFilterParts.push(`host ${obj[1]}`);
+        
         break;
       }
       case 'protocol': {
-        const protocolFilter = values.map((value) => `proto ${value}`);
-        filterParts.push(`(${protocolFilter.join(' or ')})`);
+        const protocolFilter = obj[1];
+        filterParts.push(`proto (${protocolFilter})`);
         break;
       }
       default:
-        console.warn(`Unsupported filter key: ${key}`);
+        console.warn(`Unsupported filter key: ${obj[0]}`);
         break;
     }
   }
@@ -88,6 +87,8 @@ for (const [key, values] of Object.entries(fields)) {
 if (ipFilterParts.length > 0) {
   filterParts.push(`(${ipFilterParts.join(' or ')})`);
 }
+
+
 
 // Join all filter parts with 'and' to construct the complete filter
 const filterString = filterParts.join(' and ');

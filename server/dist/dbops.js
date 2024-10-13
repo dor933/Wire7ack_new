@@ -63,7 +63,7 @@ async function writeActivationToDb(connection, activation) {
       CASE WHEN CONVERT(VARCHAR(MAX), @IPHOST2) = '' THEN NULL ELSE @IPHOST2 END,
       CASE WHEN CONVERT(VARCHAR(MAX), @IPHOST3) = '' THEN NULL ELSE @IPHOST3 END,
       CASE WHEN CONVERT(VARCHAR(MAX), @IPHOST4) = '' THEN NULL ELSE @IPHOST4 END,
-      CASE WHEN CONVERT(VARCHAR(MAX), @protocols) = 'All' THEN NULL ELSE @protocols END
+      NULLIF(@protocols, 'All')
     )`;
     try {
         const result = await connection.request()

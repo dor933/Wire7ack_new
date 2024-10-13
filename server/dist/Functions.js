@@ -5,10 +5,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTsharkInterfaces = getTsharkInterfaces;
 exports.clearcapturedirectory = clearcapturedirectory;
+exports.getipv4address = getipv4address;
 const child_process_1 = require("child_process");
 const util_1 = require("util");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const os = require('os');
+const networkInterfaces = os.networkInterfaces();
+let ipv4Address = '';
+function getipv4address() {
+    Object.keys(networkInterfaces).forEach((key) => {
+        networkInterfaces[key].forEach((item) => {
+            if (item.family === 'IPv4' && !item.internal) {
+                ipv4Address = item.address;
+            }
+        });
+    });
+    return ipv4Address;
+}
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
 async function getTsharkInterfaces() {
     try {

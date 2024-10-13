@@ -281,7 +281,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
 
             
 
-                <Grid item xs={4}>
+                <Grid item xs={3} xl={4}>
                     <SearchBar SearchType="Search" Fields={ChosenFields} setChosenFields={setChosenFields}/>
 
                 </Grid>

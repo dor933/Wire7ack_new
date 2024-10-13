@@ -26,6 +26,28 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
 
 
     const handlestart = () => {
+
+
+        if(chosenInterface.length===0){
+            alert('Please choose an interface');
+            return;
+        }
+
+        let isvalidserach=false;
+
+        Object.keys(ChosenFields).forEach((key)=>{
+            if(RegExp('ip host [1-5]').test(key) && ChosenFields[key].length>0){
+                isvalidserach=true;
+            }
+        });
+
+        if(!isvalidserach){
+            alert('Please add at least one ip host 1-5 field with value');
+            return;
+        }
+
+     
+
         axios.post('http://localhost:8000/api/start', {
             interfaceName: chosenInterface,
             fields: ChosenFields,

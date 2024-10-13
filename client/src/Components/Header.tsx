@@ -22,6 +22,7 @@ const Header: React.FC = () => {
     const [Interfaces, setInterfaces] = useState<string[]>([]);
     const {chosenInterface,setChosenInterface} = useGlobal();
     const {isConnectionopen,setIsConnectionopen} = useGlobal();
+    const [ipv4address,setipv4address] = useState<string>('');
 
 
 
@@ -33,8 +34,12 @@ const Header: React.FC = () => {
       window.addEventListener('offline', handleOffline);
 
       axios.get('http://localhost:8000/api/preconfig/interfaces').then((response) => {
+
+        const interfaces= response.data.interfaces
+        const ipv4Address= response.data.ipv4Address
+        setipv4address(ipv4Address);
         
-        const extractedNames = response.data.map((device:string) => {
+        const extractedNames = interfaces.map((device:string) => {
             const match = device.match(/\(([^)]+)\)/);  
             return match ? match[1] : device.trim(); 
           });
@@ -295,6 +300,58 @@ const Header: React.FC = () => {
                   justifyContent:'center'
                   
                   }}>
+                    
+                    <Grid item xs={6} xl={4} style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+
+                    }}>
+
+                    <Box style={{
+                        display:"inline-flex",
+                        padding: "12px 16px",
+                        borderRadius: "10px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        background: "#304C57",
+                        gap:'3px'
+                    }}>
+                            <span style={{
+                        color: "var(--text-icon-primary-white, #FFF)",
+                        fontFamily: "Roboto",
+                        fontSize: "14px",
+                        fontStyle: "normal",
+                        fontWeight:"600",
+                        lineHeight:'16px',
+                        letterSpacing:'0.1px',
+                        textTransform:'capitalize'                    
+                            }}>
+                            IPv4 Address:
+                        </span>
+                        <span style={{
+                                  color: "var(--text-icon-primary-white, #FFF)",
+                                  fontFamily: "Roboto",
+                                  fontSize: "14px",
+                                  fontStyle: "normal",
+                                  fontWeight:"600",
+                                  lineHeight:'16px',
+                                  letterSpacing:'0.1px',
+                                  textTransform:'capitalize'        
+                        }}>
+                            {ipv4address}
+                        </span>
+                        </Box>
+
+
+                    </Grid>
+
+                    <Grid item xs={6} xl={4} style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+
+                    }}>
 
                     <Box style={{
                         display:"inline-flex",
@@ -333,7 +390,7 @@ const Header: React.FC = () => {
                         </span>
 
                     </Box>
-                 
+                 </Grid>
                     
                
                   </Grid>

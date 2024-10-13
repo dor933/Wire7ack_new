@@ -6,6 +6,20 @@ import { Stream } from './shared/Stream';
 import { Packet } from './shared/Packet';
 import { getDbConnection } from './dbConnection';
 import { Activation } from './shared/Activation';
+const os = require('os');
+const networkInterfaces = os.networkInterfaces();
+let ipv4Address = '';
+
+function getipv4address(): string {
+  Object.keys(networkInterfaces).forEach((key) => {
+    networkInterfaces[key].forEach((item:any) => {
+      if (item.family === 'IPv4' && !item.internal) {
+        ipv4Address = item.address;
+      }
+    });
+  });
+  return ipv4Address;
+}
 
 const execAsync = promisify(exec);
 
@@ -42,4 +56,4 @@ if (!fs.existsSync(capturedirectory)) {
 
 
 
-export { getTsharkInterfaces,clearcapturedirectory };
+export { getTsharkInterfaces,clearcapturedirectory,getipv4address };

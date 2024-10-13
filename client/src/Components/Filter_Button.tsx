@@ -23,14 +23,25 @@ const Filter_Button:React.FC<Filter_ButtonProps> = ({setisfiltervisible,isfilter
         
 
 
-<Grid onClick={()=> {setisfiltervisible(!isfiltervisible)}} container item xs={4} xl={2} style={{
+<Grid onClick={()=> {setisfiltervisible(!isfiltervisible)}} container item xs={4} xl={3} style={{
     display: "flex",
-    padding: "10px 10px",
+ 
+}}>
+
+  <Box style={{
+    display: "flex",
+    padding: "10px 15px",
     alignItems: "center",
+    justifyContent: "flex-start",
+    
     borderRadius: "10px",
     background: "rgba(64, 75, 137, 0.10)",
-    cursor: "pointer",
-}}>
+    gap: "8px",
+    width: "fit-content",
+    
+    cursor: "pointer"}}>
+
+    
     
 
 
@@ -38,7 +49,6 @@ const Filter_Button:React.FC<Filter_ButtonProps> = ({setisfiltervisible,isfilter
     <FilterAltIcon style={{
         color: "#326591",
         fontSize: "23px",
-        marginTop: "5px",
     }}/>
 </Grid>
 <Grid item xs={10} style={{
@@ -58,6 +68,8 @@ const Filter_Button:React.FC<Filter_ButtonProps> = ({setisfiltervisible,isfilter
         isfiltervisible ? "Hide Filters" : "Show Filters"
     }
     </Grid>
+    </Box>
+
    
 
 
@@ -105,7 +117,9 @@ const Filter_Button:React.FC<Filter_ButtonProps> = ({setisfiltervisible,isfilter
             {isfiltervisible ? 'Hide Filters' : 'Table Filters'}
           </Box>
         </Box>
+        
       </Grid>
+      
     </Grid>
 
 

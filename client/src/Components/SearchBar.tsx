@@ -26,14 +26,32 @@ export default function SearchBar(props: SearchBarProps) {
     const fieldEntries = inputValue.split(' , ').map(entry => entry.trim());
   
     const newFields: Record<string, string> = {};
+    const fieldexits:string[]=[];
   
     fieldEntries.forEach(entry => {
       const [field, valuesString] = entry.split(':').map(part => part.trim());
-  
-      if (field && valuesString) {
-        // Split the valuesString by ',' to get individual values
-        newFields[field] = valuesString;
+
+
+      if(fieldexits.includes(field)){
+        alert(`Field-${field} already exists`);
+        setInputValue('');
+        props.setChosenFields!({});
+        return;
       }
+      //write in regex if field is not equal to ip host 1-5
+      if( (RegExp('ip host [1-5]').test(field) || field==='protocols') && valuesString.length>0){
+        newFields[field] = valuesString;
+        fieldexits.push(field);
+      }
+
+      else{
+        alert(`Invalid Field-${field}`);
+        setInputValue('');
+        props.setChosenFields!({});
+      }
+     
+      
+      
     });
 
     console.log(newFields);

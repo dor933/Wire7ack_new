@@ -14,8 +14,8 @@ const json_bigint_1 = __importDefault(require("json-bigint"));
 const dbops_1 = require("./dbops");
 const main_1 = require("./main");
 let lastpacketid = 0;
-function Create_Stream(Index, connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
-    return new Stream_1.Stream(Index, connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
+function Create_Stream(connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
+    return new Stream_1.Stream(connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
 }
 function Assign_Packet_To_Stream(packet, Streams) {
     let Relevant_stream = Streams.find(stream => stream.connectionID === packet.connectionID && stream.ActivationID === packet.ActivationID && stream.Protocol === packet.Protocol && ((stream.SourceIP === packet.SourceIP || stream.SourceIP === packet.DestinationIP) && (stream.DestinationIP === packet.DestinationIP || stream.DestinationIP === packet.SourceIP)));
@@ -107,7 +107,7 @@ async function processCaptureFile(filePath, ws, Streams, dbConnection, callback)
                     let assignedStream = Assign_Packet_To_Stream(packet, Streams);
                     if (!assignedStream) {
                         // Create a new stream
-                        let newStream = Create_Stream(Streams.length + 1, packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
+                        let newStream = Create_Stream(packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
                         newStream.Packets.push(packet);
                         Streams.push(newStream);
                     }
