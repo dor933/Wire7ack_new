@@ -3,9 +3,10 @@ import { Stream } from './shared/Stream';
 import { Packet } from './shared/Packet';
 import { Activation } from './shared/Activation';
 import * as mssql from 'mssql';
+import { ConnectionPool } from 'mssql';
 
 
-async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mssql.ConnectionPool,lastpacketid:number) : Promise<boolean> {
+async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mssql.ConnectionPool) : Promise<boolean> {
     const transaction = await dbConnection.transaction();
   
     try {
@@ -15,7 +16,7 @@ async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mss
         if (!stream.validity) {
           const streamId = await writeStreamToDb(dbConnection, stream);
           for (const packet of stream.Packets) {
-            await writePacketToDb(dbConnection, packet, streamId,lastpacketid);
+            await writePacketToDb(dbConnection, packet, streamId);
           }
         }
       }
@@ -44,7 +45,7 @@ async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mss
       CASE WHEN CONVERT(VARCHAR(MAX), @IPHOST2) = '' THEN NULL ELSE @IPHOST2 END,
       CASE WHEN CONVERT(VARCHAR(MAX), @IPHOST3) = '' THEN NULL ELSE @IPHOST3 END,
       CASE WHEN CONVERT(VARCHAR(MAX), @IPHOST4) = '' THEN NULL ELSE @IPHOST4 END,
-      NULLIF(@protocols, 'All')
+      CASE WHEN CONVERT(VARCHAR(MAX), @protocols) = '' THEN 'All' ELSE @protocols END
     )`;
     
   
@@ -59,7 +60,7 @@ async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mss
         
         .query(query);
 
-       activation.ActivationID=result.recordset[0].id;
+       activation.ActivationID=result.recordset[0].ActivationID;
        return activation;
   
     } catch (error) {
@@ -70,34 +71,44 @@ async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mss
 
   
   
-  async function writeStreamToDb(connection: mssql.ConnectionPool, stream: Stream) : Promise<number> {
+  async function writeStreamToDb(connection: ConnectionPool, stream: Stream): Promise<number> {
+
+    console.log('this is the stream',stream)
     // Insert stream into database and return the inserted ID
     const query = `INSERT INTO Stream (connectionID, SourceIP, DestinationIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const result = await connection.request()
-      .input('connectionID', mssql.VarChar(255), stream.connectionID)
-      .input('SourceIP', mssql.VarChar(45), stream.SourceIP)
-      .input('DestinationIP', mssql.VarChar(45), stream.DestinationIP)
-      .input('ActivationID', mssql.Int, stream.ActivationID)
-      .input('Protocol', mssql.VarChar(10), stream.Protocol)
-      .input('validity', mssql.Bit, stream.validity)
-      .input('StartTime', mssql.DateTime, stream.StartTime)
-      .input('EndTime', mssql.DateTime, stream.EndTime)
-      .input('Duration', mssql.Float, stream.Duration)
-      .input('PacketCount', mssql.Int, stream.PacketCount)
-      .input('DataVolume', mssql.BigInt, stream.DataVolume)
-      .input('ApplicationProtocol', mssql.VarChar(50), stream.ApplicationProtocol)
-      .query(query);
-    return result.recordset[0].id;
+                   OUTPUT INSERTED.ID
+                   VALUES (@connectionID, @SourceIP, @DestinationIP, @ActivationID, @Protocol, @validity, @StartTime, @EndTime, @Duration, @PacketCount, @DataVolume, @ApplicationProtocol)`;
+    
+    try {
+      const result = await connection.request()
+        .input('connectionID', mssql.Int, stream.connectionID)
+        .input('SourceIP', mssql.VarChar(45), stream.SourceIP)
+        .input('DestinationIP', mssql.VarChar(45), stream.DestinationIP)
+        .input('ActivationID', mssql.Int, stream.ActivationID)
+        .input('Protocol', mssql.VarChar(20), stream.Protocol ? stream.Protocol : '')
+        .input('validity', mssql.Bit, stream.validity)
+        .input('StartTime', mssql.DateTime, stream.StartTime)
+        .input('EndTime', mssql.DateTime, stream.EndTime ? stream.EndTime : null)
+        .input('Duration', mssql.Float, stream.Duration ? stream.Duration : null)
+        .input('PacketCount', mssql.Int, stream.PacketCount ? stream.PacketCount : null)
+        .input('DataVolume', mssql.BigInt, stream.DataVolume ? stream.DataVolume : null)
+        .input('ApplicationProtocol', mssql.VarChar(50), stream.ApplicationProtocol ? stream.ApplicationProtocol : null)
+        .query(query);
+  
+      return result.recordset[0].ID;
+    } catch (error) {
+      console.error('Error writing stream to database:', error);
+      throw error;
+    }
   }
   
-  async function writePacketToDb(connection: any, packet: Packet, streamId: number,lastpacketid:number) : Promise<void> {
+  async function writePacketToDb(connection: any, packet:Packet, streamId: number) : Promise<void> {
 
     
 
     const query = `
-      INSERT INTO Packet (
-        PacketID, StreamID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, 
+      INSERT INTO Packets (
+        StreamID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, 
         ActivationID, SourceMAC, DestinationMAC, SourcePort, DestinationPort, Flags, 
         FrameLength, ConnectionID, InterfaceAndProtocol, TCPFlagSYN, TCPFlagACK, 
         TCPFlagFIN, TCPFlagRST, TCPFlagPSH, TCPFlagURG, TCPFlagECE, TCPFlagCWR, 
@@ -105,7 +116,7 @@ async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mss
         IPChecksumStatus, ErrorIndicator, ICMPType, ICMPCode, ICMPChecksumStatus
       ) 
       VALUES (
-        @PacketID, @StreamID, @SourceIP, @DestinationIP, @Protocol, @Payload, @Timestamp, @Size, 
+       @StreamID, @SourceIP, @DestinationIP, @Protocol, @Payload, @Timestamp, @Size, 
         @ActivationID, @SourceMAC, @DestinationMAC, @SourcePort, @DestinationPort, @Flags, 
         @FrameLength, @ConnectionID, @InterfaceAndProtocol, @TCPFlagSYN, @TCPFlagACK, 
         @TCPFlagFIN, @TCPFlagRST, @TCPFlagPSH, @TCPFlagURG, @TCPFlagECE, @TCPFlagCWR, 
@@ -114,24 +125,23 @@ async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mss
       )`;
   
     await connection.request()
-      .input('PacketID', mssql.Int, ++lastpacketid)
       .input('StreamID', mssql.Int, streamId)
       .input('SourceIP', mssql.VarChar(45), packet.SourceIP)
       .input('DestinationIP', mssql.VarChar(45), packet.DestinationIP)
-      .input('Protocol', mssql.VarChar(10), packet.Protocol)
-      .input('Payload', mssql.Text, packet.Payload)
-      .input('Timestamp', mssql.DateTime, packet.Timestamp)
-      .input('Size', mssql.Int, packet.Size)
-      .input('ActivationID', mssql.Int, packet.ActivationID)
-      .input('SourceMAC', mssql.    VarChar(17), packet.sourceMAC)
-      .input('DestinationMAC', mssql.VarChar(17), packet.destinationMAC)
-      .input('SourcePort', mssql.Int, packet.sourcePort)
-      .input('DestinationPort', mssql.Int, packet.DestPort)
-      .input('Flags', mssql.VarChar(20), packet.flags)
-      .input('FrameLength', mssql.Int, packet.frameLength)
-      .input('ConnectionID', mssql.VarChar(255), packet.connectionID.toString())
-      .input('InterfaceAndProtocol', mssql.VarChar(50), packet.Interface_and_protocol)
-      .input('TCPFlagSYN', mssql.Bit, packet.tcpFlags?.syn ? 1 : 0)
+      .input('Protocol', mssql.VarChar(10), packet.Protocol? packet.Protocol : "")
+      .input('Payload', mssql.Text, packet.Payload? packet.Payload : "")
+      .input('Timestamp', mssql.DateTime, packet.Timestamp ? packet.Timestamp : null)
+      .input('Size', mssql.Int, packet.Size? packet.Size : null)
+      .input('ActivationID', mssql.Int, packet.ActivationID ? packet.ActivationID : null)
+      .input('SourceMAC', mssql.VarChar(17), packet.sourceMAC? packet.sourceMAC : "")
+      .input('DestinationMAC', mssql.VarChar(17), packet.destinationMAC? packet.destinationMAC : "")
+      .input('SourcePort', mssql.Int, packet.sourcePort? packet.sourcePort : null)
+      .input('DestinationPort', mssql.Int, packet.DestPort? packet.DestPort : null)
+      .input('Flags', mssql.VarChar(20), packet.flags? packet.flags : "")
+      .input('FrameLength', mssql.Int, packet.frameLength? packet.frameLength : null)
+      .input('ConnectionID', mssql.Int, packet.connectionID)
+      .input('InterfaceAndProtocol', mssql.VarChar(50), packet.Interface_and_protocol? packet.Interface_and_protocol : "")
+      .input('TCPFlagSYN', mssql.Bit, packet.tcpFlags?.syn? 1 : 0  )
       .input('TCPFlagACK', mssql.Bit, packet.tcpFlags?.ack ? 1 : 0 )
       .input('TCPFlagFIN', mssql.Bit, packet.tcpFlags?.fin ? 1 : 0)
       .input('TCPFlagRST', mssql.Bit, packet.tcpFlags?.rst ? 1 : 0)
@@ -139,7 +149,7 @@ async function writeInvalidStreamsToDatabase(streams: Stream[], dbConnection:mss
       .input('TCPFlagURG', mssql.Bit, packet.tcpFlags?.urg ? 1 : 0)
       .input('TCPFlagECE', mssql.Bit, packet.tcpFlags?.ece ? 1 : 0)
       .input('TCPFlagCWR', mssql.Bit, packet.tcpFlags?.cwr ? 1 : 0)
-      .input('TCPFlagNS', mssql.Bit, packet.tcpFlags?.ns || false)
+      .input('TCPFlagNS', mssql.Bit, packet.tcpFlags?.ns || false )
       .input('TCPSeq', mssql.BigInt, packet.tcpSeq || null)
       .input('TCPAck', mssql.BigInt, packet.tcpAck || null)
       .input('TCPChecksumStatus', mssql.Int, packet.tcpChecksumStatus || null)

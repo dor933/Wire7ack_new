@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTsharkInterfaces = getTsharkInterfaces;
 exports.clearcapturedirectory = clearcapturedirectory;
 exports.getipv4address = getipv4address;
+exports.detectError = detectError;
 const child_process_1 = require("child_process");
 const util_1 = require("util");
 const fs_1 = __importDefault(require("fs"));
@@ -51,4 +52,17 @@ function clearcapturedirectory(capturedirectory) {
         });
     }
     // Ensure the capture directory exists
+}
+//write a function that detect if the only error in the stream is the last packet with rst flag, if so then return only the last 4 packets
+function detectError(stream) {
+    let errorCount = 0;
+    stream.Packets.forEach((packet) => {
+        if (packet.errorIndicator) {
+            errorCount++;
+        }
+    });
+    if (errorCount === 1 && stream.Packets[stream.Packets.length - 1].errorIndicator) {
+        return true;
+    }
+    return false;
 }

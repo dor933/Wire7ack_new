@@ -38,6 +38,6 @@ export class Packet {
     // New fields for ICMP
     public icmpType?: number,
     public icmpCode?: number,
-    public icmpChecksumStatus?: number
+    public icmpChecksumStatus?: number,
   ) {}
 }

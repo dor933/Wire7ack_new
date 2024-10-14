@@ -13,6 +13,7 @@ const fs_1 = __importDefault(require("fs"));
 const json_bigint_1 = __importDefault(require("json-bigint"));
 const dbops_1 = require("./dbops");
 const main_1 = require("./main");
+const Functions_1 = require("./Functions");
 let lastpacketid = 0;
 function Create_Stream(connectionID, SourceIP, DestIP, ActivationID, Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol) {
     return new Stream_1.Stream(connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);
@@ -34,18 +35,18 @@ async function Check_Stream_Validity(stream) {
         // General IP checksum validation
         if (packet.ipChecksumStatus !== undefined && packet.ipChecksumStatus !== 2) {
             invalid = true;
-            break;
+            packet.errorIndicator = true;
         }
         if (packet.Protocol === 'TCP') {
             // Check for TCP RST flag
             if (packet.tcpFlags && packet.tcpFlags.rst) {
                 invalid = true;
-                break;
+                packet.errorIndicator = true;
             }
             // Check TCP checksum status
             if (packet.tcpChecksumStatus !== undefined && packet.tcpChecksumStatus !== 2) {
                 invalid = true;
-                break;
+                packet.errorIndicator = true;
             }
             // Additional TCP error checks can be added here
         }
@@ -53,7 +54,7 @@ async function Check_Stream_Validity(stream) {
             // Check UDP checksum status
             if (packet.udpChecksumStatus !== undefined && packet.udpChecksumStatus !== 2) {
                 invalid = true;
-                break;
+                packet.errorIndicator = true;
             }
             // Additional UDP error checks can be added here
         }
@@ -61,13 +62,13 @@ async function Check_Stream_Validity(stream) {
             // Check ICMP checksum status
             if (packet.icmpChecksumStatus !== undefined && packet.icmpChecksumStatus !== 2) {
                 invalid = true;
-                break;
+                packet.errorIndicator = true;
             }
             // ICMP Error Types
             const icmpErrorTypes = [3, 4, 5, 11, 12]; // Destination Unreachable, Source Quench, Redirect, Time Exceeded, Parameter Problem
             if (packet.icmpType !== undefined && icmpErrorTypes.includes(packet.icmpType)) {
                 invalid = true;
-                break;
+                packet.errorIndicator = true;
             }
             // Additional ICMP error checks can be added here
         }
@@ -75,7 +76,7 @@ async function Check_Stream_Validity(stream) {
             // Validate ARP opcode
             if (packet.arpOpcode !== undefined && ![1, 2].includes(packet.arpOpcode)) {
                 invalid = true;
-                break;
+                packet.errorIndicator = true;
             }
             // Additional ARP error checks can be added here
         }
@@ -117,13 +118,19 @@ async function processCaptureFile(filePath, ws, Streams, dbConnection, callback)
                 Streams.forEach((stream) => {
                     Check_Stream_Validity(stream);
                     if (!stream.validity) {
+                        if ((0, Functions_1.detectError)(stream)) {
+                            stream.Packets = stream.Packets.slice(-4);
+                        }
                         invalidStreams.push(stream);
+                    }
+                    else {
+                        stream.Packets = stream.Packets.slice(-4);
                     }
                     // Convert BigInt fields to strings if necessary
                     stream.DataVolume = stream.DataVolume.toString();
                 });
                 lastpacketid = await (0, dbops_1.getLastPacketId)(dbConnection);
-                await (0, dbops_1.writeInvalidStreamsToDatabase)(invalidStreams, dbConnection, lastpacketid);
+                await (0, dbops_1.writeInvalidStreamsToDatabase)(invalidStreams, dbConnection);
                 // Send the full Streams array through the WebSocket
                 const streamsData = JSON.stringify(Streams);
                 // Send data to all connected clients
@@ -148,7 +155,6 @@ async function processCaptureFile(filePath, ws, Streams, dbConnection, callback)
 }
 // Function to convert Wireshark JSON packet to your Packet object
 function fromWiresharkToPacketObject(packetObj) {
-    var _a;
     const layers = packetObj._source.layers;
     const frame = layers.frame;
     const eth = layers.eth;
@@ -247,7 +253,7 @@ function fromWiresharkToPacketObject(packetObj) {
         ipChecksumStatus = parseInt(ip['ip.checksum.status']) || undefined;
     }
     const packet = new Packet_1.Packet(PacketID, SourceIP, DestinationIP, Protocol, '', // Payload can be extracted if needed
-    Timestamp, Size, (_a = main_1.currentactivation === null || main_1.currentactivation === void 0 ? void 0 : main_1.currentactivation.ActivationID) !== null && _a !== void 0 ? _a : 0, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, tcpFlags, tcpSeq, tcpAck, tcpChecksumStatus, udpChecksumStatus, arpOpcode, ipChecksumStatus, false, // errorIndicator, initially false
+    Timestamp, Size, (main_1.currentactivation === null || main_1.currentactivation === void 0 ? void 0 : main_1.currentactivation.ActivationID) || 0, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, tcpFlags, tcpSeq, tcpAck, tcpChecksumStatus, udpChecksumStatus, arpOpcode, ipChecksumStatus, false, // errorIndicator, initially false
     icmpType, icmpCode, icmpChecksumStatus);
     return packet;
 }

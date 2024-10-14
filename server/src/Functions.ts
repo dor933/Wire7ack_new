@@ -54,6 +54,22 @@ if (!fs.existsSync(capturedirectory)) {
   // Ensure the capture directory exists
 }
 
+//write a function that detect if the only error in the stream is the last packet with rst flag, if so then return only the last 4 packets
+function detectError(stream:Stream):boolean{
+  let errorCount=0;
+  stream.Packets.forEach((packet)=>{
+    if(packet.errorIndicator){
+      errorCount++;
+    }
+  });
+  
+  if(errorCount===1 && stream.Packets[stream.Packets.length-1].errorIndicator){
+    return true;
+  } 
+
+  return false;
+}
 
 
-export { getTsharkInterfaces,clearcapturedirectory,getipv4address };
+
+export { getTsharkInterfaces,clearcapturedirectory,getipv4address,detectError };

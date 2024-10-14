@@ -23,8 +23,9 @@ export const startMainProcess = async (interfacename:string,fields:Record<string
   console.log('this is db connection', dbConnection);
   //find the ip host 1 key in the fields object
   const [iphost1,iphost2,iphost3,iphost4]=Object.values(fields).filter(value => value.length > 0);
-  const activation= new Activation(0,0,new Date(Date.now()),new Date(Date.now()),"","",iphost1[0]||"",iphost2[0]||"",iphost3[0]||"",iphost4[0]||"","");
+  const activation= new Activation(0,0,new Date(Date.now()),new Date(Date.now()),"","",iphost1||"",iphost2||"",iphost3||"",iphost4||"","");
   currentactivation= await writeActivationToDb(dbConnection,activation)
+  console.log('this is current activation', currentactivation)
 
   const tsharkInterfaces = await getTsharkInterfaces();
   console.log('this is tshark interfaces', tsharkInterfaces);

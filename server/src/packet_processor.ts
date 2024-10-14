@@ -9,12 +9,13 @@ import JSONBig from 'json-bigint';
 import { ConnectionPool } from 'mssql';
 import { writeInvalidStreamsToDatabase, getLastPacketId } from './dbops';
 import { currentactivation } from './main';
+import { detectError } from './Functions';
 
 
 let lastpacketid=0;
 
  function Create_Stream(connectionID: number, SourceIP:string,DestIP:string, ActivationID: number, Protocol: string, validity: boolean, StartTime: Date, EndTime: Date, Duration: number, PacketCount: number, DataVolume: bigint, ApplicationProtocol: string): Stream {
-    return new Stream( connectionID, SourceIP, DestIP, ActivationID, [], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
+    return new Stream( connectionID, SourceIP, DestIP, ActivationID,[], Protocol, validity, StartTime, EndTime, Duration, PacketCount, DataVolume, ApplicationProtocol);}
 
 function Assign_Packet_To_Stream( packet: Packet, Streams: Stream[]): boolean|Stream {
 
@@ -37,33 +38,33 @@ async function Check_Stream_Validity(stream: Stream): Promise<void> {
     // General IP checksum validation
     if (packet.ipChecksumStatus !== undefined && packet.ipChecksumStatus !== 2) {
       invalid = true;
-      break;
+      packet.errorIndicator=true;
     }
 
     if (packet.Protocol === 'TCP') {
       // Check for TCP RST flag
       if (packet.tcpFlags && packet.tcpFlags.rst) {
         invalid = true;
-        break;
+        packet.errorIndicator=true;
       }
       // Check TCP checksum status
       if (packet.tcpChecksumStatus !== undefined && packet.tcpChecksumStatus !== 2) {
         invalid = true;
-        break;
+        packet.errorIndicator=true;
       }
       // Additional TCP error checks can be added here
     } else if (packet.Protocol === 'UDP') {
       // Check UDP checksum status
       if (packet.udpChecksumStatus !== undefined && packet.udpChecksumStatus !== 2) {
         invalid = true;
-        break;
+        packet.errorIndicator=true;
       }
       // Additional UDP error checks can be added here
     } else if (packet.Protocol === 'ICMP') {
       // Check ICMP checksum status
       if (packet.icmpChecksumStatus !== undefined && packet.icmpChecksumStatus !== 2) {
         invalid = true;
-        break;
+        packet.errorIndicator=true;
       }
 
       // ICMP Error Types
@@ -71,7 +72,7 @@ async function Check_Stream_Validity(stream: Stream): Promise<void> {
 
       if (packet.icmpType !== undefined && icmpErrorTypes.includes(packet.icmpType)) {
         invalid = true;
-        break;
+        packet.errorIndicator=true;
       }
 
       // Additional ICMP error checks can be added here
@@ -79,7 +80,7 @@ async function Check_Stream_Validity(stream: Stream): Promise<void> {
       // Validate ARP opcode
       if (packet.arpOpcode !== undefined && ![1, 2].includes(packet.arpOpcode)) {
         invalid = true;
-        break;
+        packet.errorIndicator=true;
       }
       // Additional ARP error checks can be added here
     }
@@ -156,7 +157,14 @@ export async function processCaptureFile(
       Streams.forEach((stream) => {
         Check_Stream_Validity(stream);
         if (!stream.validity) {
+          if(detectError(stream)){
+            stream.Packets=stream.Packets.slice(-12);
+          }
+          
           invalidStreams.push(stream);
+        }
+        else{
+          stream.Packets=stream.Packets.slice(-4);
         }
         // Convert BigInt fields to strings if necessary
         stream.DataVolume = stream.DataVolume.toString();
@@ -164,7 +172,7 @@ export async function processCaptureFile(
 
       lastpacketid=await getLastPacketId(dbConnection);
 
-      await writeInvalidStreamsToDatabase(invalidStreams, dbConnection,lastpacketid);
+      await writeInvalidStreamsToDatabase(invalidStreams, dbConnection);
 
       // Send the full Streams array through the WebSocket
       const streamsData = JSON.stringify(Streams);
@@ -308,7 +316,7 @@ function fromWiresharkToPacketObject(packetObj: any): Packet {
     '', // Payload can be extracted if needed
     Timestamp,
     Size,
-    currentactivation?.ActivationID??0,
+    currentactivation?.ActivationID||0,
     sourceMAC,
     destinationMAC,
     sourcePort,

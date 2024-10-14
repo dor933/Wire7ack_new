@@ -49,36 +49,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
 
 
-  function isPacketError(packet: Packet): boolean {
-    // Check IP checksum status
-    if (packet.ipChecksumStatus === 1) {
-      return true;
-    }
 
-    if(packet.Protocol === 'TCP'){
-      // Check for TCP RST flag
-      if (packet.tcpFlags && packet.tcpFlags.rst) {
-        return true;
-      }
-      if (packet.tcpChecksumStatus === 1) {
-        return true;
-      }
-    }
-  
-      
-    // Check UDP checksum status
-    if (packet.udpChecksumStatus === 1) {
-      return true;
-    }
-  
-    // Check ICMP checksum status
-    if (packet.icmpChecksumStatus === 1) {
-      return true;
-    }
-  
- 
-    return false; // No errors detected
-  }
 
   const ProtocolFilter = props.ProtocolFilter;
   const ValidityFilter = props.ValidityFilter;
@@ -140,6 +111,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     SourceIPFilter,
     DestinationIPFilter,
     ValidityFilter,
+    
   ]);
 
   const columns: string[] = [
@@ -165,12 +137,18 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   };
 
   // Toggle the row to show sub-items (packets)
-  const toggleRow = (id: number) => {
+  const toggleRow = (index: number) => {
+    console.log(index);
+    const actualIndex = page * rowsPerPage + index;
     setOpenRows((prevState) => ({
       ...prevState,
-      [id]: !prevState[id], // Toggle the open/close state of the row
+      [actualIndex]: !prevState[actualIndex],
     }));
   };
+
+  useEffect(() => {
+    setOpenRows({});
+  }, [page, rowsPerPage]);
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -206,6 +184,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
             {filteredRows
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, index) => (
+                
                 <React.Fragment key={index}>
                   <TableRow className={row.validity === false ? 'stream-error' : ''}
                   >
@@ -269,7 +248,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                               </TableHead>
                               <TableBody>
                                 {row.Packets.map((packet) => (
-                                  <TableRow key={packet.PacketID} className={isPacketError(packet) ? 'packet-error' : ''}>
+                                  <TableRow key={packet.PacketID} className={packet.errorIndicator ? 'packet-error' : ''}>
                                     <TableCell>{packet.PacketID}</TableCell>
                                     <TableCell>{packet.Size}</TableCell>
                                     <TableCell>{packet.SourceIP}</TableCell>
