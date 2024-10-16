@@ -5,7 +5,6 @@ import { Grid,Box } from "@mui/material";
 import SearchBar from "./SearchBar";
 import PersonIcon from '@mui/icons-material/Person';
 import Logo from "../assets/Logo.png";
-import Top_Table_Element from "./Top_Table_Element";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import axios from 'axios';
 import {useGlobal} from "./Context/Global";
@@ -23,6 +22,7 @@ const Header: React.FC = () => {
     const {chosenInterface,setChosenInterface} = useGlobal();
     const {isConnectionopen,setIsConnectionopen} = useGlobal();
     const [ipv4address,setipv4address] = useState<string>('');
+    const {iscapturing,setIscapturing} = useGlobal();
 
 
 
@@ -55,6 +55,8 @@ const Header: React.FC = () => {
         window.removeEventListener('offline', handleOffline);
       };
     }, []);
+
+    
  
 
 
@@ -303,7 +305,7 @@ const Header: React.FC = () => {
                     
                     <Grid item xs={6} xl={4} style={{
                         display: "flex",
-                        justifyContent: "flex-end",
+                        justifyContent: "flex-start",
                         alignItems: "center",
 
                     }}>
@@ -348,7 +350,7 @@ const Header: React.FC = () => {
 
                     <Grid item xs={6} xl={4} style={{
                         display: "flex",
-                        justifyContent: "flex-end",
+                        justifyContent: "flex-start",
                         alignItems: "center",
 
                     }}>
@@ -386,6 +388,51 @@ const Header: React.FC = () => {
                         }}>
                             {
                                 isConnectionopen? "Connected" : "Disconnected"
+                            }
+                        </span>
+
+                    </Box>
+                 </Grid>
+                 <Grid item xs={6} xl={4} style={{
+                        display: "flex",
+                        justifyContent: "flex-start",
+                        alignItems: "center",
+
+                    }}>
+
+                    <Box style={{
+                        display:"inline-flex",
+                        padding: "12px 16px",
+                        borderRadius: "10px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        background: iscapturing? "#1DD66A":"#D61D1D",
+                        gap:'3px'
+                    }}>
+                            <span style={{
+                        color: "var(--text-icon-primary-white, #FFF)",
+                        fontFamily: "Roboto",
+                        fontSize: "14px",
+                        fontStyle: "normal",
+                        fontWeight:"600",
+                        lineHeight:'16px',
+                        letterSpacing:'0.1px',
+                        textTransform:'capitalize'                    
+                            }}>
+                            Capture:
+                        </span>
+                        <span style={{
+                                  color: "var(--text-icon-primary-white, #FFF)",
+                                  fontFamily: "Roboto",
+                                  fontSize: "14px",
+                                  fontStyle: "normal",
+                                  fontWeight:"600",
+                                  lineHeight:'16px',
+                                  letterSpacing:'0.1px',
+                                  textTransform:'capitalize'        
+                        }}>
+                            {
+                                iscapturing? "Capturing" : "Not Capturing"
                             }
                         </span>
 

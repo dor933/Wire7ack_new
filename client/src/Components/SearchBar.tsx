@@ -3,6 +3,7 @@ import Paper from '@mui/material/Paper';
 import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
+import CheckIcon from '@mui/icons-material/Check';
 
 type Searchtypes = 'Quick Action' | 'Search';
 
@@ -15,15 +16,23 @@ interface SearchBarProps {
 export default function SearchBar(props: SearchBarProps) {
   // Local state to store the input text as the user types
   const [inputValue, setInputValue] = React.useState<string>('');
+  const [isusertyping,setIsUserTyping]=React.useState<boolean>(false);
+  
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsUserTyping(true);
     setInputValue(event.target.value); // Update the local input value state as the user types
   };
 
+  const handleBlur=()=>{
+    setIsUserTyping(false);
+    handleFieldChange();
+  }
   // Handler for when the user leaves the input field (onBlur event)
   const handleFieldChange = () => {
     // Split the input by ', ' to separate the fields
-    const fieldEntries = inputValue.split(' , ').map(entry => entry.trim());
+    //REMOVE space between , 
+    const fieldEntries = inputValue.split(',').map(entry => entry.trim());
   
     const newFields: Record<string, string> = {};
     const fieldexits:string[]=[];
@@ -38,14 +47,16 @@ export default function SearchBar(props: SearchBarProps) {
         props.setChosenFields!({});
         return;
       }
+
+      const fieldlowercase=field.toLowerCase();
       //write in regex if field is not equal to ip host 1-5
-      if( (RegExp('ip host [1-5]').test(field) || field==='protocols') && valuesString.length>0){
-        newFields[field] = valuesString;
-        fieldexits.push(field);
+      if( (RegExp('ip host [1-5]').test(fieldlowercase) || fieldlowercase==='protocols') && valuesString.length>0){
+        newFields[fieldlowercase] = valuesString;
+        fieldexits.push(fieldlowercase);
       }
 
       else{
-        alert(`Invalid Field-${field}`);
+        alert(`Invalid Field-${fieldlowercase}`);
         setInputValue('');
         props.setChosenFields!({});
       }
@@ -79,10 +90,10 @@ export default function SearchBar(props: SearchBarProps) {
         inputProps={{ 'aria-label': 'search google maps' }}
         value={inputValue} // Display the current input value
         onChange={handleInputChange} // Capture the input as the user types
-        onBlur={handleFieldChange} // Process the input when the user leaves the field
+        onBlur={handleBlur} // Process the input when the user leaves the field
       />
-      <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
-        <SearchIcon />
+      <IconButton type="button" sx={{ p: '10px' }} aria-label="search" onClick={handleFieldChange}>
+          {isusertyping?<CheckIcon/>:<SearchIcon />}
       </IconButton>
     </Paper>
   );

@@ -119,7 +119,7 @@ async function processCaptureFile(filePath, ws, Streams, dbConnection, callback)
                     Check_Stream_Validity(stream);
                     if (!stream.validity) {
                         if ((0, Functions_1.detectError)(stream)) {
-                            stream.Packets = stream.Packets.slice(-4);
+                            stream.Packets = stream.Packets.slice(-12);
                         }
                         invalidStreams.push(stream);
                     }

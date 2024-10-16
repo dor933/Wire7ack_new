@@ -8,6 +8,7 @@ import preconfig from './routes/preconfig';
 import cors from 'cors';
 import { WebSocketServer } from 'ws';
 import { startWebSocketServer } from './websocket_server';
+import maintainance from './routes/maintainance';
 
 const wsServer: WebSocketServer = startWebSocketServer();
 
@@ -29,7 +30,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api',Startroute);
 app.use('/api',Stoproute);
 app.use('/api',preconfig);
-
+app.use('/api',maintainance);
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);

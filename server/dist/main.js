@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stopMainProcess = exports.startMainProcess = exports.currentactivation = void 0;
+exports.stopMainProcess = exports.startMainProcess = exports.iscapturing = exports.currentactivation = void 0;
 const child_process_1 = require("child_process");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
@@ -35,8 +35,90 @@ const Functions_2 = require("./Functions");
 const dbConnection_1 = require("./dbConnection");
 const Activation_1 = require("./shared/Activation");
 const dbops_1 = require("./dbops");
+const util_1 = require("util");
+const execAsync = (0, util_1.promisify)(child_process_1.exec);
 let dumpcap = null;
 exports.currentactivation = null; // Define dumpcap globally
+let isShuttingDown = false;
+exports.iscapturing = false;
+let heartbeatInterval = null;
+const HEARTBEAT_INTERVAL = 300000;
+const isProcessRunning = async (pid) => {
+    try {
+        if (process.platform === 'win32') {
+            // For Windows
+            const { stdout } = await execAsync(`tasklist /FI "PID eq ${pid}" /FO CSV /NH`);
+            return stdout.includes(`${pid}`);
+        }
+        else {
+            // For Unix-based systems (Linux, macOS)
+            await execAsync(`ps -p ${pid}`);
+            return true;
+        }
+    }
+    catch (error) {
+        return false; // Process not found
+    }
+};
+const startDumpcap = (interfaceIndex, captureDirectory, baseFileName, numberOfFiles, fileSize, filterString) => {
+    dumpcap = (0, child_process_1.spawn)('dumpcap', [
+        '-i', interfaceIndex,
+        '-b', `files:${numberOfFiles}`,
+        '-b', `filesize:${fileSize}`,
+        '-f', filterString,
+        '-w', path.join(captureDirectory, `${baseFileName}.pcapng`),
+    ]);
+    exports.iscapturing = true;
+    dumpcap.stdout.on('data', (data) => {
+        console.log(`dumpcap stdout: ${data}`);
+    });
+    dumpcap.on('error', (error) => {
+        console.error(`dumpcap error: ${error.message}`);
+    });
+    dumpcap.on('close', async (code) => {
+        console.log(`dumpcap process exited with code ${code}`);
+        exports.iscapturing = false;
+        stopHeartbeat();
+        if (!isShuttingDown) {
+            console.log('Attempting to restart dumpcap...');
+            // Wait for 5 seconds before restarting
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            startDumpcap(interfaceIndex, captureDirectory, baseFileName, numberOfFiles, fileSize, filterString);
+        }
+    });
+    startHeartbeat();
+};
+const startHeartbeat = () => {
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+    }
+    heartbeatInterval = setInterval(async () => {
+        if (dumpcap && dumpcap.pid) {
+            const isRunning = await isProcessRunning(dumpcap.pid);
+            if (!isRunning) {
+                console.error('dumpcap process is not running. Restarting...');
+                exports.iscapturing = false;
+                restartDumpcap();
+            }
+            else {
+                console.log('dumpcap process is still running.');
+            }
+        }
+    }, HEARTBEAT_INTERVAL);
+};
+const stopHeartbeat = () => {
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+    }
+};
+const restartDumpcap = () => {
+    if (dumpcap) {
+        dumpcap.kill('SIGKILL'); // Force kill the process
+        dumpcap = null;
+    }
+    // The process will be restarted by the 'close' event handler
+};
 const startMainProcess = async (interfacename, fields) => {
     const dbConnection = await (0, dbConnection_1.getDbConnection)();
     console.log('this is db connection', dbConnection);
@@ -48,7 +130,6 @@ const startMainProcess = async (interfacename, fields) => {
     const tsharkInterfaces = await (0, Functions_1.getTsharkInterfaces)();
     console.log('this is tshark interfaces', tsharkInterfaces);
     console.log('this is interface name', interfacename);
-    //find the interface index
     let interfaceIndex = '';
     for (let i = 0; i < tsharkInterfaces.length; i++) {
         if (tsharkInterfaces[i].includes(interfacename)) {
@@ -60,11 +141,10 @@ const startMainProcess = async (interfacename, fields) => {
     console.log('this is interface index', interfaceIndex);
     const captureDirectory = path.join(__dirname, 'captures');
     const baseFileName = 'capture';
-    const numberOfFiles = 10; // Number of files in the ring buffer
+    const numberOfFiles = 10;
+    const fileSize = 3000;
     console.log('this is capture directory', captureDirectory);
-    const fileSize = 3000; // Size of each file in kilobytes (100 MB)
-    fs.writeFileSync('tshark_output.log', ''); // Clear the tshark output log file
-    // Ensure the capture directory exists
+    fs.writeFileSync('tshark_output.log', '');
     (0, Functions_2.clearcapturedirectory)(captureDirectory);
     let filterParts = [];
     let ipFilterParts = [];
@@ -95,35 +175,20 @@ const startMainProcess = async (interfacename, fields) => {
     // Join all filter parts with 'and' to construct the complete filter
     const filterString = filterParts.join(' and ');
     console.log('Generated filter string:', filterString);
-    // Start dumpcap with the specified configuration
-    dumpcap = (0, child_process_1.spawn)('dumpcap', [
-        '-i',
-        interfaceIndex,
-        '-b',
-        `files:${numberOfFiles}`,
-        '-b',
-        `filesize:${fileSize}`,
-        '-f',
-        filterString,
-        '-w',
-        path.join(captureDirectory, `${baseFileName}.pcapng`),
-    ]);
-    dumpcap.on('error', (error) => {
-        console.error(`dumpcap error: ${error.message}`);
-    });
-    dumpcap.on('close', (code) => {
-        console.log(`dumpcap process exited with code ${code}`);
-    });
-    // Start the WebSocket server
+    isShuttingDown = false;
+    startDumpcap(interfaceIndex, captureDirectory, baseFileName, numberOfFiles, fileSize, filterString);
     // Start the file watcher and pass the WebSocket server to it
     (0, file_watcher_1.startFileWatcher)(captureDirectory, server_1.wsServer, dbConnection);
     return "Main process started successfully";
+    // Start dumpcap with the specified configuration
 };
 exports.startMainProcess = startMainProcess;
 const stopMainProcess = () => {
+    isShuttingDown = true;
+    stopHeartbeat();
     if (dumpcap) {
-        dumpcap.kill('SIGINT'); // Send SIGINT to stop dumpcap gracefully
-        dumpcap = null; // Clear the reference
+        dumpcap.kill('SIGINT');
+        dumpcap = null;
         console.log('Main process stopped successfully');
     }
     else {

@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, TablePagination, IconButton, Collapse, Box
+  Paper, TablePagination, IconButton, Collapse, Box, Tooltip, Typography
 } from '@mui/material';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Stream } from '../shared/Stream';
-import { Packet } from '../shared/Packet';
 import '../PaginatedTable.css'; // Custom SCSS for table
 import { useGlobal } from "./Context/Global";
+//import tooltip mui
+import InfoIcon from '@mui/icons-material/Info';
 
 interface PaginatedTableProps {
   rows: Stream[];
@@ -138,17 +139,72 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
   // Toggle the row to show sub-items (packets)
   const toggleRow = (index: number) => {
-    console.log(index);
-    const actualIndex = page * rowsPerPage + index;
     setOpenRows((prevState) => ({
       ...prevState,
-      [actualIndex]: !prevState[actualIndex],
+      [index]: !prevState[index],
     }));
   };
 
   useEffect(() => {
     setOpenRows({});
   }, [page, rowsPerPage]);
+
+  const flagsTooltip = (
+    <Box>
+    <Typography variant="subtitle1" fontWeight="bold">TCP Flags:</Typography>
+    <Typography variant="body2">
+      <b>FIN (0x01):</b> "Goodbye!" - Politely ends the conversation.<br/>
+      <b>SYN (0x02):</b> "Hello!" - Starts a conversation between devices.<br/>
+      <b>RST (0x04):</b> "Oops!" - Abruptly ends the conversation due to an error.<br/>
+      <b>PSH (0x08):</b> "Urgent!" - Asks to process this data immediately.<br/>
+      <b>ACK (0x10):</b> "Got it!" - Confirms receiving information.<br/>
+      <b>URG (0x20):</b> "Look here!" - Points out important data in the packet.<br/>
+      <b>ECE (0x40):</b> "Traffic alert!" - Warns about network congestion.<br/>
+      <b>CWR (0x80):</b> "Slowing down!" - Responds to congestion warning.<br/>
+      <b>NS (0x100):</b> "Security check!" - Helps ensure the packet hasn't been tampered with.
+    </Typography>
+    <Typography variant="subtitle1" fontWeight="bold" mt={1}>Common Combinations:</Typography>
+    <Typography variant="body2">
+      <b>0x00 (No flags):</b> "Just passing through" - Normal data transfer, no special actions needed.<br/>
+      <b>0x02 (SYN):</b> Start conversation<br/>
+      <b>0x12 (SYN+ACK):</b> Acknowledge conversation start<br/>
+      <b>0x10 (ACK):</b> Acknowledge received data<br/>
+      <b>0x18 (PSH+ACK):</b> "Got it, please process this urgently!"<br/>
+      <b>0x11 (FIN+ACK):</b> "I'm done sending, but still listening"<br/>
+      <b>0x04 (RST):</b> Forcefully terminate the connection <br/>
+      <b>0x14 (RST+ACK):</b> "I got your message, but I'm forcefully ending this conversation"
+
+    </Typography>
+  </Box>
+  );
+  const tcpFlagsTooltip = (
+    <Box>
+    <Typography variant="subtitle1" fontWeight="bold">TCP Flags:</Typography>
+    <Typography variant="body2">
+      <b>FIN (0x01):</b> "Goodbye!" - Politely ends the conversation.<br/>
+      <b>SYN (0x02):</b> "Hello!" - Starts a conversation between devices.<br/>
+      <b>RST (0x04):</b> "Oops!" - Abruptly ends the conversation due to an error.<br/>
+      <b>PSH (0x08):</b> "Urgent!" - Asks to process this data immediately.<br/>
+      <b>ACK (0x10):</b> "Got it!" - Confirms receiving information.<br/>
+      <b>URG (0x20):</b> "Look here!" - Points out important data in the packet.<br/>
+      <b>ECE (0x40):</b> "Traffic alert!" - Warns about network congestion.<br/>
+      <b>CWR (0x80):</b> "Slowing down!" - Responds to congestion warning.<br/>
+      <b>NS (0x100):</b> "Security check!" - Helps ensure the packet hasn't been tampered with.
+    </Typography>
+    <Typography variant="subtitle1" fontWeight="bold" mt={1}>Common Combinations:</Typography>
+    <Typography variant="body2">
+      <b>0x00 (No flags):</b> "Just passing through" - Normal data transfer, no special actions needed.<br/>
+      <b>0x02 (SYN):</b> Start conversation<br/>
+      <b>0x12 (SYN+ACK):</b> Acknowledge conversation start<br/>
+      <b>0x10 (ACK):</b> Acknowledge received data<br/>
+      <b>0x18 (PSH+ACK):</b> "Got it, please process this urgently!"<br/>
+      <b>0x11 (FIN+ACK):</b> "I'm done sending, but still listening"<br/>
+      <b>0x04 (RST):</b> Forcefully terminate the connection <br/>
+      <b>0x14 (RST+ACK):</b> "I got your message, but I'm forcefully ending this conversation"
+
+    </Typography>
+  </Box>
+  );
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -192,7 +248,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                       <IconButton
                         aria-label="expand row"
                         size="small"
-                        onClick={() => toggleRow(index)}
+                        onClick={() => toggleRow(row.index!)}
                       >
                         {openRows[row.index!] ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
                       </IconButton>
@@ -228,13 +284,57 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                                   <TableCell>Destination MAC</TableCell>
                                   <TableCell>Source Port</TableCell>
                                   <TableCell>Destination Port</TableCell>
-                                  <TableCell>Flags</TableCell>
+                                  <TableCell>
+                                  <div style={{display:'flex',alignItems:'center',justifyContent:'flex-start', 
+                                      gap:'5px',
+                                      width:'100%',
+                                      padding:'5px',
+                                      borderRadius:'5px',
+                                      backgroundColor:'#f0f0f0',
+                                    }}>
+   <Tooltip title={flagsTooltip} arrow placement="top">
+                                      <IconButton size="small">
+                                        <InfoIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <span>Flags</span>
+                                    </div>
+
+
+                               
+
+                                  </TableCell>
                                   <TableCell>Frame Length</TableCell>
                                   <TableCell>Connection ID</TableCell>
                                   <TableCell>Interface and Protocol</TableCell>
                                   <TableCell>Timestamp</TableCell>
                                   {/* New columns for error detection */}
-                                  <TableCell>TCP Flags</TableCell>
+                                  <TableCell>
+                                    
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'flex-start', 
+                                      gap:'5px',
+                                      width:'100%',
+                                      padding:'5px',
+                                      borderRadius:'5px',
+                                      backgroundColor:'#f0f0f0',
+                                    }}>
+
+                                    <Tooltip title={tcpFlagsTooltip} arrow placement="top">
+                                      <IconButton size="small">
+                                        <InfoIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+
+                                    <span>TCP Flags</span>
+
+
+                                    </div>
+
+                             
+
+                                 
+
+                                  </TableCell>
                                   <TableCell>TCP Seq</TableCell>
                                   <TableCell>TCP Ack</TableCell>
                                   <TableCell>TCP Checksum Status</TableCell>

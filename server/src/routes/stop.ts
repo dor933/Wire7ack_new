@@ -16,7 +16,7 @@ router.get('/stop', (req: Request, res: Response) => {
 
       },capturedirectory);
 
-        res.send(result);
+        res.status(200).send('Capture stopped');
 
     } catch (error) {
       console.error('Error stopping the main process:', error);

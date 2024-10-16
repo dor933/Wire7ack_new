@@ -11,6 +11,7 @@ const stop_1 = __importDefault(require("./routes/stop"));
 const preconfig_1 = __importDefault(require("./routes/preconfig"));
 const cors_1 = __importDefault(require("cors"));
 const websocket_server_1 = require("./websocket_server");
+const maintainance_1 = __importDefault(require("./routes/maintainance"));
 const wsServer = (0, websocket_server_1.startWebSocketServer)();
 exports.wsServer = wsServer;
 //import cors
@@ -26,6 +27,7 @@ app.get('/', (req, res) => {
 app.use('/api', start_1.default);
 app.use('/api', stop_1.default);
 app.use('/api', preconfig_1.default);
+app.use('/api', maintainance_1.default);
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);

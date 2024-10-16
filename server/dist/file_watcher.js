@@ -97,22 +97,3 @@ function handleFile(filePath, ws, processedFiles, dbConnection) {
         }
     });
 }
-function checkIfProcessingIsComplete(captureDirectory, onComplete) {
-    const intervalId = setInterval(() => {
-        fs.readdir(captureDirectory, (err, files) => {
-            if (err) {
-                console.error(`Error reading directory ${captureDirectory}: ${err.message}`);
-                clearInterval(intervalId);
-                return;
-            }
-            if (files.length === 0) {
-                console.log('Capture directory is empty. All files processed.');
-                clearInterval(intervalId);
-                onComplete();
-            }
-            else {
-                console.log(`Files remaining in directory: ${files.length}`);
-            }
-        });
-    }, 1000); // Check every 1 second if the folder is empty
-}

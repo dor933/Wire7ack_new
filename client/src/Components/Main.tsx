@@ -4,18 +4,48 @@ import Sub_Header from './Sub_Header';
 import Main_Comp from './Main_Comp';
 import { useGlobal } from './Context/Global';
 import { Stream } from '../shared/Stream';
+import { useRef, useCallback } from 'react';
+import axios from 'axios';
+
 
 const Main: React.FC = () => {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [invalid_streams, setInvalid_streams] = useState<Stream[]>([]);
-  const { isConnectionopen, setIsConnectionopen } = useGlobal();
+  const {setIsConnectionopen } = useGlobal();
+  const socketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const {setIscapturing} = useGlobal();
 
-  useEffect(() => {
+ 
+  //set interval to check if the capture is started or not every 3 minutes- wait for the server to send a message that the capture is started or not
+  useEffect(()=>{
+    setInterval(async ()=>{
+      await axios.get('http://localhost:8000/api/maintainance/iscapture').then((response)=>{
+        console.log(response.data.iscapturing);
+        setIscapturing(response.data.iscapturing);
+      });
+    },30000);
+  },[setIscapturing]);
+
+
+ 
+
+
+  const connectWebSocket = useCallback(() => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      return;
+    }
+    
+
     const socket = new WebSocket('ws://127.0.0.1:8080');
 
     socket.onopen = () => {
       console.log('Connected to server');
       setIsConnectionopen(true);
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
     };
 
     socket.onmessage = (event: MessageEvent<string>) => {
@@ -100,20 +130,55 @@ const Main: React.FC = () => {
       }
     };
 
-    socket.onclose = () => {
-      console.log('Disconnected from server');
+    socket.onclose = (event) => {
+      console.log('Disconnected from server', event.reason);
       setIsConnectionopen(false);
+      reconnectTimeoutRef.current = setTimeout(() => {
+        console.log('Attempting to reconnect...');
+        connectWebSocket();
+      }, 5000); // Try to reconnect after 5 seconds
     };
 
     socket.onerror = (event: Event) => {
       console.error(`WebSocket error: ${event}`);
     };
 
+    socketRef.current = socket;
+
     // Clean up when the component unmounts
-    return () => {
-      socket.close();
-    };
+ 
   }, [setIsConnectionopen]);
+
+
+  useEffect(() => {
+    connectWebSocket();
+
+    // Cleanup function
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+    };
+  }, [connectWebSocket]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN)) {
+        console.log('Page became visible, attempting to reconnect...');
+        connectWebSocket();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [connectWebSocket]);
+
 
   return (
     <div>

@@ -15,9 +15,8 @@ interface Main_ActionsProps {
 const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
 
     const {chosenInterface,setChosenInterface} = useGlobal();
-    const {isCaptureStarted,setIsCaptureStarted} = useGlobal();
     const {ChosenFields,setChosenFields} = useGlobal();
-
+    const {iscapturing,setIscapturing} = useGlobal();
     useEffect(() => {
 
         console.log('those are chosen fields',ChosenFields);
@@ -54,7 +53,12 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
         })
         .then((response) => {
             console.log(response);
-            setIsCaptureStarted(true);
+            if(response.status===200){
+            setIscapturing(true);
+            }
+            else{
+                alert('Failed to start capture');
+            }   
         })
         .catch((error) => {
             console.log(error);
@@ -62,18 +66,23 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
     }
 
     const handlestop = () => {
-        axios.get('http://localhost:8000/api/stop')
+         axios.get('http://localhost:8000/api/stop')
         .then((response) => {
+            if(response.status===200){
+                setIscapturing(false);
+            }
+            else{
+                alert('Failed to stop capture');
+            }
             console.log(response);
         })
         .catch((error) => {
             console.log(error); 
         },)
-        .finally(() => {
-            setIsCaptureStarted(false);}
+       
         
 
-        );
+        
     }
 
 
@@ -83,7 +92,7 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
     const isxl= useMediaQuery('(min-width:1920px)');
 
     return(
-        <Grid onClick={props.ActionName==='Start' && !isCaptureStarted? ()=> handlestart() : props.ActionName==='Start'&& isCaptureStarted? ()=> handlestop(): ()=> handlestart()} container item xs={4} xl={3} style={{
+        <Grid onClick={props.ActionName==='Start' && !iscapturing? ()=> handlestart() : props.ActionName==='Start'&& iscapturing? ()=> handlestop(): ()=> handlestart()} container item xs={4} xl={3} style={{
             display: "flex",
             padding: "10px 15px",
             alignItems: "center",
@@ -100,10 +109,10 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
                 justifyContent: "flex-start",
             }}>
                 {
-                    props.ActionName==="Start" && !isCaptureStarted ? <PlayArrowIcon style={{
+                    props.ActionName==="Start" && !iscapturing ? <PlayArrowIcon style={{
                         color: "#326591",
                         fontSize: "23px",
-                    }}/> : props.ActionName==="Start" && isCaptureStarted? <StopCircleIcon
+                    }}/> : props.ActionName==="Start" && iscapturing? <StopCircleIcon
                     style={{
                         color: "#326591",
                         fontSize: "23px",
@@ -128,7 +137,7 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
                 paddingLeft:'10px'
             }}>
                 {
-                    props.ActionName==="Start" && !isCaptureStarted ? "Start Capture" : props.ActionName==="Start" && isCaptureStarted ? "Stop Capture": props.ActionName==="Report" ? "Generate Report" : ""
+                        props.ActionName==="Start" && !iscapturing ? "Start Capture" : props.ActionName==="Start" && iscapturing ? "Stop Capture": props.ActionName==="Report" ? "Generate Report" : ""
                 }
             </Grid>
 
