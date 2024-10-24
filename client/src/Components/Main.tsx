@@ -15,6 +15,7 @@ const Main: React.FC = () => {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const {setIscapturing} = useGlobal();
+  const {last_stream_id,setLast_stream_id} = useGlobal();
 
  
   //set interval to check if the capture is started or not every 3 minutes- wait for the server to send a message that the capture is started or not
@@ -26,6 +27,13 @@ const Main: React.FC = () => {
       });
     },30000);
   },[setIscapturing]);
+
+  useEffect(()=>{
+
+    axios.get('http://localhost:80/Stream/GetLastStreamID').then((response)=>{
+      setLast_stream_id(response.data.last_stream_id);
+    });
+  },[]);
 
 
  

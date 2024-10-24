@@ -18,6 +18,9 @@ interface GlobalContext {
     iscapturing:boolean;
     setIscapturing:React.Dispatch<React.SetStateAction<boolean>>;
 
+    last_stream_id:number;
+    setLast_stream_id:React.Dispatch<React.SetStateAction<number>>;
+
 
   
 
@@ -39,9 +42,9 @@ export const GlobalProvider: React.FC<{children:React.ReactNode}> = ({ children 
     const [View, setView] = useState<string>("All Connections");
     const [ChosenFields, setChosenFields] = useState<Record<string, string>>({});
     const [iscapturing, setIscapturing] = useState<boolean>(false);
-
+    const [last_stream_id, setLast_stream_id] = useState<number>(0);
     return (
-        <GlobalContext.Provider value={{ iscapturing,setIscapturing,chosenInterface,View,ChosenFields,setChosenFields,setView,setChosenInterface,isConnectionopen,setIsConnectionopen }}>
+        <GlobalContext.Provider value={{ iscapturing,last_stream_id,setLast_stream_id,setIscapturing,chosenInterface,View,ChosenFields,setChosenFields,setView,setChosenInterface,isConnectionopen,setIsConnectionopen }}>
             {children}
         </GlobalContext.Provider>
     );

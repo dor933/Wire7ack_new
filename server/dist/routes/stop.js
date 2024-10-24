@@ -13,7 +13,7 @@ router.get('/stop', (req, res) => {
         const result = (0, file_watcher_1.stopFileWatcher)(() => {
             console.log('File watcher stopped. Processing remaining files...');
         }, capturedirectory);
-        res.send(result);
+        res.status(200).send('Capture stopped');
     }
     catch (error) {
         console.error('Error stopping the main process:', error);

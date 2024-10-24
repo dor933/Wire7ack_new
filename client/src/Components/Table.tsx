@@ -9,8 +9,10 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Stream } from '../shared/Stream';
 import '../PaginatedTable.css'; // Custom SCSS for table
 import { useGlobal } from "./Context/Global";
-//import tooltip mui
 import InfoIcon from '@mui/icons-material/Info';
+import axios from 'axios';
+
+type Time_order = 'desc' | 'asc';
 
 interface PaginatedTableProps {
   rows: Stream[];
@@ -22,6 +24,8 @@ interface PaginatedTableProps {
   starttimedate: string;
   endtimedate: string;
   invalid_streams: Stream[];
+  historic_streams: Stream[];
+  time_order:Time_order;
 }
 
 const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
@@ -32,6 +36,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   const [openRows, setOpenRows] = useState<{ [key: number]: boolean }>({}); // Track open rows
   const [filteredRows, setFilteredRows] = useState<Stream[]>(props.rows);
   const {View} = useGlobal()
+  const {last_stream_id} = useGlobal();
 
   useEffect(() => {
 
@@ -42,11 +47,14 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     else if(View === 'Warning Connections'){
       setVisiblerows([]);
     }
+    else if(View==='Historic Connections'){
+      setVisiblerows(props.historic_streams);
+    }
     else{
     setVisiblerows(props.rows);
     }
   }
-  , [props.rows,props.invalid_streams,View]);
+  , [props.rows,props.invalid_streams,props.historic_streams,View]);
 
 
 
@@ -60,8 +68,37 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   const starttimedate = new Date(props.starttimedate);
   const endtimedate = new Date(props.endtimedate);
 
+ 
+  const handlechage_historic_streams = async () => {
+    try {
+      const response = await axios.get('http://localhost:80/GetStream', {
+        params: {
+          pagenum: page,
+          pagesize: rowsPerPage,
+          last_stream_id: last_stream_id,
+          Protocol: props.ProtocolFilter || undefined, // Optional parameter
+          Timedirection: props.time_order, // Use props.time_order
+          validity: props.ValidityFilter,
+          sourceip: props.SourceIPFilter,
+          destip: props.DestinationIPFilter,
+          startTime: props.starttimedate,
+          endTime: props.endtimedate,
+        },
+      });
+
+      setFilteredRows(response.data);
+    } catch (error) {
+      console.error('Error fetching historic streams:', error);
+    }
+  };
+
   // Function to update filtered rows based on filters
   const changeFilteredRows = () => {
+
+    if(View==='Historic Connections'){
+      handlechage_historic_streams();
+    }
+    else{
     let index=0;
     let tempRows = visiblerows.filter((row) => {
 
@@ -100,7 +137,10 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     });
     setFilteredRows(tempRows);
     setPage(0); // Reset page to 0 whenever filters change
+  }
   };
+
+ 
 
   // Update filteredRows when filters or props.rows change
   useEffect(() => {
