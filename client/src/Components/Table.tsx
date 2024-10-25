@@ -12,12 +12,11 @@ import { useGlobal } from "./Context/Global";
 import InfoIcon from '@mui/icons-material/Info';
 import axios from 'axios';
 
-type Time_order = 'desc' | 'asc';
+type Time_order = 'desc' | 'asc' | null;
 
 interface PaginatedTableProps {
   rows: Stream[];
   ProtocolFilter: string;
-  ValidityFilter: boolean | undefined;
   FlagsFilter: string;
   SourceIPFilter: string;
   DestinationIPFilter: string;
@@ -25,7 +24,6 @@ interface PaginatedTableProps {
   endtimedate: string;
   invalid_streams: Stream[];
   historic_streams: Stream[];
-  time_order:Time_order;
 }
 
 const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
@@ -35,6 +33,11 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10); // Rows per page
   const [openRows, setOpenRows] = useState<{ [key: number]: boolean }>({}); // Track open rows
   const [filteredRows, setFilteredRows] = useState<Stream[]>(props.rows);
+  const [validity_direction,setValidity_direction] = useState<Time_order>(null);
+  const [Data_Volume_direction,setData_Volume_direction] = useState<Time_order>(null);
+  const [Protocol_direction,setProtocol_direction] = useState<Time_order>(null);
+  const [time_order,setTime_order] = useState<Time_order>(null);
+
   const {View} = useGlobal()
   const {last_stream_id} = useGlobal();
 
@@ -61,7 +64,6 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
 
   const ProtocolFilter = props.ProtocolFilter;
-  const ValidityFilter = props.ValidityFilter;
   const FlagsFilter = props.FlagsFilter;
   const SourceIPFilter = props.SourceIPFilter;
   const DestinationIPFilter = props.DestinationIPFilter;
@@ -76,13 +78,16 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
           pagenum: page,
           pagesize: rowsPerPage,
           last_stream_id: last_stream_id,
-          Protocol: props.ProtocolFilter || undefined, // Optional parameter
-          Timedirection: props.time_order, // Use props.time_order
-          validity: props.ValidityFilter,
-          sourceip: props.SourceIPFilter,
-          destip: props.DestinationIPFilter,
-          startTime: props.starttimedate,
-          endTime: props.endtimedate,
+          Protocol: ProtocolFilter || undefined, // Optional parameter
+          Timedirection: time_order || undefined,
+          validity: validity_direction || undefined,
+          sourceip: SourceIPFilter || undefined,
+          destip: DestinationIPFilter || undefined,
+          startTime: starttimedate || undefined,
+          endTime: endtimedate || undefined,
+          ProtocolDirection: Protocol_direction || undefined, 
+          DataVolumeDirection: Data_Volume_direction || undefined,
+          ValidityDirection: validity_direction || undefined,
         },
       });
 
@@ -118,9 +123,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
         return false;
       }
 
-      if (ValidityFilter !== undefined && row.validity !== ValidityFilter) {
-        return false;
-      }
+
       if (
         FlagsFilter !== '' &&
         row.Packets.map((packet) => packet.flags).includes(FlagsFilter) === false
@@ -151,7 +154,6 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     FlagsFilter,
     SourceIPFilter,
     DestinationIPFilter,
-    ValidityFilter,
     
   ]);
 
@@ -461,7 +463,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       </TableContainer>
       <TablePagination
         component="div"
-        count={filteredRows.length} // Use filteredRows length for pagination
+        count={ View==='Historic Connections' ? last_stream_id : filteredRows.length} // Use filteredRows length for pagination
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}

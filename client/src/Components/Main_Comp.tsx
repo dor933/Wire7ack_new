@@ -35,7 +35,6 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     const newrows=props.rows;
     const {ChosenFields,setChosenFields}=useGlobal();
     const [ProtocolFilter, setProtocolFilter] = useState<string>('');
-    const [ValidityFilter, setValidityFilter] = useState<boolean | undefined>(undefined);
     const [FlagsFilter, setFlagsFilter] = useState<string>('');
     const [SourceIPFilter, setSourceIPFilter] = useState<string>('');
     const [DestinationIPFilter, setDestinationIPFilter] = useState<string>('');
@@ -70,8 +69,9 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     };
   
     useEffect(() => {
+
       // Update the table data based on filter changes if needed
-    }, [startdatetime, enddatetime, ProtocolFilter, ValidityFilter, FlagsFilter, SourceIPFilter, DestinationIPFilter]);
+    }, [startdatetime, enddatetime, ProtocolFilter, FlagsFilter, SourceIPFilter, DestinationIPFilter]);
   
     
 
@@ -490,7 +490,6 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 </Grid>
                 
                 <Table rows={newrows} ProtocolFilter={ProtocolFilter} 
-                ValidityFilter={ValidityFilter} 
                 FlagsFilter={FlagsFilter} 
                 SourceIPFilter={SourceIPFilter} 
                 DestinationIPFilter={DestinationIPFilter}
