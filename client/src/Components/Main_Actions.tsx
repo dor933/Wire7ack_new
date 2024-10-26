@@ -17,6 +17,8 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
     const {chosenInterface,setChosenInterface} = useGlobal();
     const {ChosenFields,setChosenFields} = useGlobal();
     const {iscapturing,setIscapturing} = useGlobal();
+    const {setLast_stream_id}= useGlobal();
+
     useEffect(() => {
 
         console.log('those are chosen fields',ChosenFields);
@@ -24,7 +26,7 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
     ,[ChosenFields]);
 
 
-    const handlestart = () => {
+    const handlestart = async () => {
 
 
         if(chosenInterface.length===0){
@@ -44,6 +46,9 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
             alert('Please add at least one ip host 1-5 field with value');
             return;
         }
+
+        let id:any=await axios.get('https://localhost:32531/Stream/GetLastStreamID');
+        setLast_stream_id(id.data)
 
      
 
@@ -70,6 +75,7 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
         .then((response) => {
             if(response.status===200){
                 setIscapturing(false);
+               
             }
             else{
                 alert('Failed to stop capture');

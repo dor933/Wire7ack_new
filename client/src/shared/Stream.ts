@@ -17,5 +17,7 @@ export class Stream {
       public DataVolume: bigint|string,
       public ApplicationProtocol: string,
       public index?: number,
+      public ID?: number,
+
     ) {}
   }

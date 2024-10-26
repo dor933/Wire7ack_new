@@ -17,7 +17,7 @@ let ipv4Address = '';
 function getipv4address() {
     Object.keys(networkInterfaces).forEach((key) => {
         networkInterfaces[key].forEach((item) => {
-            if (item.family === 'IPv4' && !item.internal) {
+            if (item.family === 'IPv4' && !item.internal && !item.address.startsWith('172.')) {
                 ipv4Address = item.address;
             }
         });

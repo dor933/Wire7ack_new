@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, TablePagination, IconButton, Collapse, Box, Tooltip, Typography
@@ -23,12 +23,10 @@ interface PaginatedTableProps {
   starttimedate: string;
   endtimedate: string;
   invalid_streams: Stream[];
-  historic_streams: Stream[];
 }
 
 const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
-  const [visiblerows, setVisiblerows] = useState<Stream[]>(props.rows);
   const [page, setPage] = useState<number>(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState<number>(10); // Rows per page
   const [openRows, setOpenRows] = useState<{ [key: number]: boolean }>({}); // Track open rows
@@ -38,26 +36,13 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   const [Protocol_direction,setProtocol_direction] = useState<Time_order>(null);
   const [time_order,setTime_order] = useState<Time_order>(null);
 
+
   const {View} = useGlobal()
   const {last_stream_id} = useGlobal();
+  const [historic_streams,setHistoric_streams] = useState<Stream[]>([]);
 
-  useEffect(() => {
 
-    if(View === 'Error Connections'){
-      setVisiblerows(props.invalid_streams);
-    }
-
-    else if(View === 'Warning Connections'){
-      setVisiblerows([]);
-    }
-    else if(View==='Historic Connections'){
-      setVisiblerows(props.historic_streams);
-    }
-    else{
-    setVisiblerows(props.rows);
-    }
-  }
-  , [props.rows,props.invalid_streams,props.historic_streams,View]);
+ 
 
 
 
@@ -69,43 +54,84 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   const DestinationIPFilter = props.DestinationIPFilter;
   const starttimedate = new Date(props.starttimedate);
   const endtimedate = new Date(props.endtimedate);
+  const [isLoading, setIsLoading] = useState(false);
 
- 
-  const handlechage_historic_streams = async () => {
+  const fetchHistoricStreams = useCallback(async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
     try {
-      const response = await axios.get('http://localhost:80/GetStream', {
-        params: {
-          pagenum: page,
-          pagesize: rowsPerPage,
-          last_stream_id: last_stream_id,
-          Protocol: ProtocolFilter || undefined, // Optional parameter
-          Timedirection: time_order || undefined,
-          validity: validity_direction || undefined,
-          sourceip: SourceIPFilter || undefined,
-          destip: DestinationIPFilter || undefined,
-          startTime: starttimedate || undefined,
-          endTime: endtimedate || undefined,
-          ProtocolDirection: Protocol_direction || undefined, 
-          DataVolumeDirection: Data_Volume_direction || undefined,
-          ValidityDirection: validity_direction || undefined,
-        },
+      console.log('page is',page)
+      console.log('rowsPerPage is',rowsPerPage)
+      console.log('last_stream_id is',last_stream_id)
+      const response = await axios.post('https://localhost:32531/Stream/GetStreams', {
+        PageNumber: page,
+        PageSize: rowsPerPage,
+        LastStreamId: last_stream_id,
       });
 
-      setFilteredRows(response.data);
+      const temp_streams:Stream[] = response.data.map((stream:Stream)=>{
+        return new Stream(stream.connectionID,stream.SourceIP,stream.DestinationIP,stream.ActivationID,stream.Packets? stream.Packets : [],stream.Protocol,stream.validity,stream?.StartTime,stream?.EndTime,stream?.Duration,stream?.PacketCount,stream?.DataVolume,stream?.ApplicationProtocol,stream.index,stream.ID)
+       })
+
+        const firstId = temp_streams[0].ID;
+        const lastId = temp_streams[temp_streams.length - 1].ID;
+
+        console.log('firstId is',firstId)
+        console.log('lastId is',lastId)
+        console.log('temp_streams is',temp_streams)
+
+        console.log('historic_streams is',historic_streams)
+        const temp_historic_streams = new Array(last_stream_id).fill(new Stream(0,'','',0,[],'',false,new Date(),new Date(),0,0,BigInt(0),'',0,0));
+        console.log('temp_historic_streams beofre is',temp_historic_streams)
+        temp_historic_streams.fill(new Stream(0,'','',0,[],'',false,new Date(),new Date(),0,0,BigInt(0),'',0,0));
+        let index=0;
+
+        for(let i=firstId!; i<=lastId!; i++){
+          temp_historic_streams[i-1]=temp_streams[index];
+          temp_historic_streams[i-1].index=i;
+          index++;
+        }
+
+        console.log('temp_historic_streams is',temp_historic_streams)
+        setHistoric_streams(temp_historic_streams);
+        setFilteredRows(temp_historic_streams);
+        
+         //search for the firstId and lastId in the historic_streams array and fill the empty objects between them with the response data
+
+         
+         
+     
     } catch (error) {
       console.error('Error fetching historic streams:', error);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [page, rowsPerPage, last_stream_id]);
+
+  useEffect(() => {
+  
+    changeFilteredRows();
+
+      
+    
+  }, [View, page, rowsPerPage, fetchHistoricStreams, props.rows, props.invalid_streams]);
+
+ 
+
 
   // Function to update filtered rows based on filters
   const changeFilteredRows = () => {
 
+    console.log('View is',View)
+
     if(View==='Historic Connections'){
-      handlechage_historic_streams();
+      fetchHistoricStreams();
     }
     else{
     let index=0;
-    let tempRows = visiblerows.filter((row) => {
+    let rowstofilter= View==='All Connections' ? props.rows : View==='Error Connections' ? props.invalid_streams : [];
+    let tempRows = rowstofilter.filter((row) => {
 
       row.index=index;
       index++;
@@ -149,7 +175,6 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   useEffect(() => {
     changeFilteredRows();
   }, [
-    visiblerows,
     ProtocolFilter,
     FlagsFilter,
     SourceIPFilter,
@@ -171,6 +196,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   // Handle page change
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
+ 
   };
 
   // Handle rows per page change

@@ -30,10 +30,22 @@ const Main: React.FC = () => {
 
   useEffect(()=>{
 
-    axios.get('http://localhost:80/Stream/GetLastStreamID').then((response)=>{
-      setLast_stream_id(response.data.last_stream_id);
-    });
+    getlastasync()
+
+
+ 
+    
   },[]);
+
+
+ const getlastasync= async() => {
+
+  let id:any=await axios.get('https://localhost:32531/Stream/GetLastStreamID');
+  console.log(id.data)
+  setLast_stream_id(id.data)
+
+
+ }
 
 
  

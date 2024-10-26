@@ -31,13 +31,19 @@ const Sub_Header: React.FC = () => {
             <Grid container item xs={6} style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "20px",
+                justifyContent: "space-between",
+                
+
+                
                 
             }}>
+
+                
                 
                 <Packet_Views  ViewName="All Connections"/>
                 <Packet_Views  ViewName="Error Connections"/>
                 <Packet_Views  ViewName="Warning Connections"/>
+                <Packet_Views  ViewName="Historic Connections"/>
 
             </Grid>
 

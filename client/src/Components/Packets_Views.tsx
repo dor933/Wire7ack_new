@@ -21,7 +21,9 @@ const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
             : props.ViewName === 'Error Connections'
             ? "rgba(137, 64, 75, 0.10)"
             : props.ViewName === 'Warning Connections'
-            ? "rgba(255, 165, 0, 0.10)"  // Example for Warning Connections
+            ? "rgba(255, 165, 0, 0.10)"
+            : props.ViewName === 'Historic Connections'
+            ? "rgba(137, 64, 75, 0.10)"  // Example for Warning Connections
             : '';
     };
 
@@ -31,7 +33,9 @@ const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
             : props.ViewName === 'Error Connections'
             ? "rgba(137, 64, 75, 0.10)"
             : props.ViewName === 'Warning Connections'
-            ? "rgba(255, 165, 0, 0.10)"  // Example for Warning Connections
+            ? "rgba(255, 165, 0, 0.10)"
+            : props.ViewName === 'Historic Connections'
+            ? "rgba(137, 64, 75, 0.10)"  // Example for Warning Connections
             : '';
     };
 
@@ -41,12 +45,14 @@ const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
             : props.ViewName === 'Error Connections'
             ? "#913250"
             : props.ViewName === 'Warning Connections'
-            ? "#FFA500"  // Example for Warning Connections
+            ? "#FFA500" 
+            : props.ViewName === 'Historic Connections'
+            ? "#47151f"  // E // Example for Warning Connections
             : '';
     };
 
     return (
-        <Grid container item xs={4} lg={3} style={{
+        <Grid container item xs={4} lg={2.5} style={{
             display: "flex",
             paddingTop:"10px",
             paddingBottom:"10px",
@@ -69,7 +75,7 @@ const Packet_Views: React.FC<Packet_ViewsProps> = (props) => {
             </Grid>
 
             <Grid item xs={10} style={{
-                fontSize: isxl? "16px": '11px',
+                fontSize: isxl? "13px": '11px',
                 fontWeight: "600",
                 lineHeight: "normal",
                 color: getFillColor(),
