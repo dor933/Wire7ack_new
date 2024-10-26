@@ -109,26 +109,24 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     }
   }, [page, rowsPerPage, last_stream_id]);
 
-  useEffect(() => {
-  
-    changeFilteredRows();
-
-      
-    
-  }, [View, page, rowsPerPage, fetchHistoricStreams, props.rows, props.invalid_streams]);
+ 
 
  
 
 
   // Function to update filtered rows based on filters
-  const changeFilteredRows = () => {
+  const changeFilteredRows = useCallback((islivedata?:boolean) => {
 
     console.log('View is',View)
-
-    if(View==='Historic Connections'){
-      fetchHistoricStreams();
+    if (View === 'Historic Connections') {
+      if (islivedata) {
+        return; // Don't update for Historic Connections on live data change
+      } else {
+        fetchHistoricStreams();
+        return;
+      }
     }
-    else{
+ 
     let index=0;
     let rowstofilter= View==='All Connections' ? props.rows : View==='Error Connections' ? props.invalid_streams : [];
     let tempRows = rowstofilter.filter((row) => {
@@ -166,8 +164,22 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     });
     setFilteredRows(tempRows);
     setPage(0); // Reset page to 0 whenever filters change
-  }
-  };
+  
+  },[View, props.rows, props.invalid_streams, fetchHistoricStreams])
+
+  useEffect(()=> {
+
+    changeFilteredRows(true);
+
+  },[props.rows,props.invalid_streams,changeFilteredRows])
+
+  useEffect(() => {
+  
+    changeFilteredRows();
+
+      
+    
+  }, [View, page, rowsPerPage, changeFilteredRows]);
 
  
 
