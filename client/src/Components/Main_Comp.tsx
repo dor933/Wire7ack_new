@@ -45,6 +45,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     const [chosentablefilters,setchosentablefilters]=useState<string[]>([]);
     const [isfilter2visible,setisfilter2visible]=useState<boolean>(false);
     const maxtablefilters=4;
+    const {historic_streams,setHistoric_streams} = useGlobal();
       
     
     useEffect(() => {
@@ -391,7 +392,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
           key={filter}
           Data={
             // List all the unique values of the Protocol field
-            newrows.concat(props.invalid_streams)
+            newrows.concat(props.invalid_streams).concat(historic_streams)
               .map((row) => row.Protocol)
               .filter((value, index, self) => self.indexOf(value) === index)
           }
@@ -413,7 +414,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
         <Top_Table_Element
           key={filter}
           Data={
-            newrows
+            newrows.concat(props.invalid_streams).concat(historic_streams)
               .map((row) => row.Packets.map((packet) => packet.flags))
               .flat()
               .filter((value, index, self) => self.indexOf(value) === index)

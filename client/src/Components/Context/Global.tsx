@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-
+import { Stream } from '../../shared/Stream';
 interface GlobalContext {
  
 
@@ -20,6 +20,10 @@ interface GlobalContext {
 
     last_stream_id:number;
     setLast_stream_id:React.Dispatch<React.SetStateAction<number>>;
+
+    historic_streams:Stream[];
+    setHistoric_streams:React.Dispatch<React.SetStateAction<Stream[]>>;
+
 
 
   
@@ -43,8 +47,9 @@ export const GlobalProvider: React.FC<{children:React.ReactNode}> = ({ children 
     const [ChosenFields, setChosenFields] = useState<Record<string, string>>({});
     const [iscapturing, setIscapturing] = useState<boolean>(false);
     const [last_stream_id, setLast_stream_id] = useState<number>(0);
+    const [historic_streams,setHistoric_streams] = useState<Stream[]>([]);
     return (
-        <GlobalContext.Provider value={{ iscapturing,last_stream_id,setLast_stream_id,setIscapturing,chosenInterface,View,ChosenFields,setChosenFields,setView,setChosenInterface,isConnectionopen,setIsConnectionopen }}>
+        <GlobalContext.Provider value={{ iscapturing,last_stream_id,historic_streams,setHistoric_streams,setLast_stream_id,setIscapturing,chosenInterface,View,ChosenFields,setChosenFields,setView,setChosenInterface,isConnectionopen,setIsConnectionopen }}>
             {children}
         </GlobalContext.Provider>
     );

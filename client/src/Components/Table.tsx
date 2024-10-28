@@ -14,6 +14,11 @@ import axios from 'axios';
 
 type Time_order = 'desc' | 'asc' | null;
 
+interface Stream_with_total_count {
+  streams:Stream[];
+  total_count:number;
+}
+
 interface PaginatedTableProps {
   rows: Stream[];
   ProtocolFilter: string;
@@ -31,22 +36,16 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10); // Rows per page
   const [openRows, setOpenRows] = useState<{ [key: number]: boolean }>({}); // Track open rows
   const [filteredRows, setFilteredRows] = useState<Stream[]>(props.rows);
-  const [validity_direction,setValidity_direction] = useState<Time_order>(null);
-  const [Data_Volume_direction,setData_Volume_direction] = useState<Time_order>(null);
-  const [Protocol_direction,setProtocol_direction] = useState<Time_order>(null);
-  const [time_order,setTime_order] = useState<Time_order>(null);
-
+  const [sorting_filters, setSorting_filters] = useState<{key:string,direction:Time_order}[]>([
+    {key:'Validity', direction:null},
+    {key:'Data Volume', direction:null},
+    {key:'Start Time', direction:null},
+    {key:'Protocol', direction:null}
+  ]);
 
   const {View} = useGlobal()
-  const {last_stream_id} = useGlobal();
-  const [historic_streams,setHistoric_streams] = useState<Stream[]>([]);
-
-
- 
-
-
-
-
+  const {last_stream_id,setLast_stream_id, historic_streams,setHistoric_streams } = useGlobal();
+  const [total_count,setTotal_count] = useState<number>(0);
 
   const ProtocolFilter = props.ProtocolFilter;
   const FlagsFilter = props.FlagsFilter;
@@ -57,6 +56,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchHistoricStreams = useCallback(async () => {
+    console.log('fetchHistoricStreams is called')
     if (isLoading) return;
     
     setIsLoading(true);
@@ -64,38 +64,43 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       console.log('page is',page)
       console.log('rowsPerPage is',rowsPerPage)
       console.log('last_stream_id is',last_stream_id)
+
+     
+      console.log('sorting_filters is',sorting_filters)
+
+      
       const response = await axios.post('https://localhost:32531/Stream/GetStreams', {
         PageNumber: page,
         PageSize: rowsPerPage,
         LastStreamId: last_stream_id,
+        Protocol: ProtocolFilter?ProtocolFilter:null,
+        SourceIP: SourceIPFilter?SourceIPFilter:null,
+        DestIp: DestinationIPFilter?DestinationIPFilter:null,
+        StartTime: starttimedate?starttimedate:null,
+        EndTime: endtimedate?endtimedate:null,
+        Sortingfilters: sorting_filters
+        
       });
 
-      const temp_streams:Stream[] = response.data.map((stream:Stream)=>{
-        return new Stream(stream.connectionID,stream.SourceIP,stream.DestinationIP,stream.ActivationID,stream.Packets? stream.Packets : [],stream.Protocol,stream.validity,stream?.StartTime,stream?.EndTime,stream?.Duration,stream?.PacketCount,stream?.DataVolume,stream?.ApplicationProtocol,stream.index,stream.ID)
+      console.log('response is',response.data)
+
+      
+      let index=0;
+
+
+      const temp_streams:Stream[]= JSON.parse(response.data.streams).map((stream:Stream)=>{
+        return new Stream(stream.connectionID,stream.SourceIP,stream.DestinationIP,stream.ActivationID,stream.Packets? stream.Packets : [],stream.Protocol,stream.validity,stream?.StartTime,stream?.EndTime,stream?.Duration,stream?.PacketCount,stream?.DataVolume,stream?.ApplicationProtocol,index++,stream.ID)
        })
 
-        const firstId = temp_streams[0].ID;
-        const lastId = temp_streams[temp_streams.length - 1].ID;
+       const total_count= parseInt(response.data.totalcount);
 
-        console.log('firstId is',firstId)
-        console.log('lastId is',lastId)
-        console.log('temp_streams is',temp_streams)
 
-        console.log('historic_streams is',historic_streams)
-        const temp_historic_streams = new Array(last_stream_id).fill(new Stream(0,'','',0,[],'',false,new Date(),new Date(),0,0,BigInt(0),'',0,0));
-        console.log('temp_historic_streams beofre is',temp_historic_streams)
-        temp_historic_streams.fill(new Stream(0,'','',0,[],'',false,new Date(),new Date(),0,0,BigInt(0),'',0,0));
-        let index=0;
+      
+        
 
-        for(let i=firstId!; i<=lastId!; i++){
-          temp_historic_streams[i-1]=temp_streams[index];
-          temp_historic_streams[i-1].index=i;
-          index++;
-        }
-
-        console.log('temp_historic_streams is',temp_historic_streams)
-        setHistoric_streams(temp_historic_streams);
-        setFilteredRows(temp_historic_streams);
+        setHistoric_streams(temp_streams);
+        setFilteredRows(temp_streams);
+        setTotal_count(total_count);
         
          //search for the firstId and lastId in the historic_streams array and fill the empty objects between them with the response data
 
@@ -107,7 +112,13 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     } finally {
       setIsLoading(false);
     }
-  }, [page, rowsPerPage, last_stream_id]);
+  }, [page, rowsPerPage, last_stream_id,
+    sorting_filters,setLast_stream_id
+  ]);
+
+
+
+
 
  
 
@@ -116,6 +127,8 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
   // Function to update filtered rows based on filters
   const changeFilteredRows = useCallback((islivedata?:boolean) => {
+
+    console.log('sorting_filters is',sorting_filters)
 
     console.log('View is',View)
     if (View === 'Historic Connections') {
@@ -162,10 +175,61 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       }
       return true;
     });
+
+    
+    for(let filter of sorting_filters){
+      if(filter.direction===null) continue;
+     
+      if(filter.key==='Validity'){
+        if(filter.direction==='asc'){
+          tempRows.sort((a,b)=>a.validity===b.validity ? 0 : a.validity ? -1 : 1);
+        }
+        else{
+          tempRows.sort((a,b)=>b.validity===a.validity ? 0 : b.validity ? -1 : 1);
+        }
+      }
+      else if(filter.key==='Data Volume'){
+        if(filter.direction==='asc'){
+          tempRows.sort((a,b)=>Number(a.DataVolume)-Number(b.DataVolume));
+        }
+        else{
+          tempRows.sort((a,b)=>Number(b.DataVolume)-Number(a.DataVolume));
+        }
+      }
+      else if(filter.key==='Start Time'){
+        if(filter.direction==='asc'){
+          tempRows.sort((a,b)=>a.StartTime.getTime()-b.StartTime.getTime());
+        }
+        else{
+          tempRows.sort((a,b)=>b.StartTime.getTime()-a.StartTime.getTime());
+        }
+      }
+      else if(filter.key==='Protocol'){
+        if(filter.direction==='asc'){
+          tempRows.sort((a,b)=>a.Protocol.localeCompare(b.Protocol));
+        }
+        else{
+          tempRows.sort((a,b)=>b.Protocol.localeCompare(a.Protocol));
+        }
+      }
+
+    }
+
+ 
+   
+
     setFilteredRows(tempRows);
     setPage(0); // Reset page to 0 whenever filters change
   
-  },[View, props.rows, props.invalid_streams, fetchHistoricStreams])
+  },[View, props.rows, props.invalid_streams, fetchHistoricStreams, 
+    sorting_filters
+  ])
+
+
+ 
+
+
+
 
   useEffect(()=> {
 
@@ -179,7 +243,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
       
     
-  }, [View, page, rowsPerPage, changeFilteredRows]);
+  }, [View, page, rowsPerPage,]);
 
  
 
@@ -191,6 +255,8 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     FlagsFilter,
     SourceIPFilter,
     DestinationIPFilter,
+    sorting_filters,
+    
     
   ]);
 
@@ -228,6 +294,8 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   useEffect(() => {
     setOpenRows({});
   }, [page, rowsPerPage]);
+
+
 
   const flagsTooltip = (
     <Box>
@@ -286,6 +354,20 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   </Box>
   );
 
+  const ascendingtooltip=(
+    <Box>
+      <Typography variant="subtitle1" fontWeight="bold">Ascending Order:</Typography>
+      <Typography variant="body2">This field is sorted in ascending order.</Typography>
+    </Box>
+  )
+
+  const descendingtooltip=(
+    <Box>
+      <Typography variant="subtitle1" fontWeight="bold">Descending Order:</Typography>
+      <Typography variant="body2">This field is sorted in descending order.</Typography>
+    </Box>
+  )
+
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
       <TableContainer>
@@ -302,12 +384,88 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                       justifyContent: 'space-between',
                     }}
                   >
-                    <span>{column}</span>
+                    {sorting_filters.find(filter=>filter.key===column)?.direction==='asc' ?
+                    
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'flex-start', 
+                      gap:'5px',
+                      width:'100%',
+                      padding:'5px',
+                      borderRadius:'5px',
+                    }}>
+<Tooltip title={ascendingtooltip} arrow placement="top">
+                      <IconButton size="small">
+                        <InfoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                      <span>{column}</span>
+                    </div> : 
+                    sorting_filters.find(filter=>filter.key===column)?.direction==='desc' ?
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'flex-start', 
+                      gap:'5px',
+                      width:'100%',
+                      padding:'5px',
+                      borderRadius:'5px',
+                    }}>
+                    <Tooltip title={descendingtooltip} arrow placement="top">
+                      <IconButton size="small">
+                        <InfoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                      <span>{column}</span>
+                    </div> :
+                    <span>{column}</span>}
                     <ImportExportIcon
                       style={{
-                        color: '#304C57',
+                        color: sorting_filters.find(filter=>filter.key===column)?.direction==='asc' ? '#1100ff' : sorting_filters.find(filter=>filter.key===column)?.direction==='desc' ? '#b83946' : '#000',
                         fontSize: '16px',
-                        marginLeft: 'auto', // Ensure icon stays to the far right
+                        marginLeft: 'auto', 
+                        cursor: 'pointer',
+                        // Ensure icon stays to the far right
+                      }} onClick={  ()=>{
+                      
+                        const handleSortingFilter = (filterKey: string) => {
+
+                          setSorting_filters(prev => {
+                            // Create a new array with all filters
+                            const newFilters = prev.map(filter => {
+                              if (filter.key === filterKey) {
+                                // Create a new object for the changed filter
+                                return {
+                                  ...filter,
+                                  direction: filter.direction === null ? 'asc' as Time_order
+                                            : filter.direction === 'asc' ? 'desc' as Time_order
+                                            : null
+                                };
+                              }
+                              return filter;
+                            });
+                            
+                            console.log('After update:', newFilters);
+                            
+                            // Return the new array to ensure reference change
+                            return newFilters;
+                          });                
+          
+                         
+
+                        
+                        };
+                      
+                        switch (column) {
+                          case 'Validity':
+                              handleSortingFilter('Validity');
+                            break;
+                          case 'Data Volume':
+                             handleSortingFilter('Data Volume');
+                            break;
+                          case 'Start Time':
+                            handleSortingFilter('Start Time');
+                            break;
+                          case 'Protocol':
+                             handleSortingFilter('Protocol');
+                            break;
+                        }
+                        
                       }}
                     />
                   </div>
@@ -318,7 +476,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
           <TableBody>
             {/* Use filteredRows instead of props.rows */}
             {filteredRows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .slice( View==='Historic Connections' ? 0 : page * rowsPerPage , View==='Historic Connections' ?  filteredRows.length : page * rowsPerPage + rowsPerPage )
               .map((row, index) => (
                 
                 <React.Fragment key={index}>
@@ -501,7 +659,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       </TableContainer>
       <TablePagination
         component="div"
-        count={ View==='Historic Connections' ? last_stream_id : filteredRows.length} // Use filteredRows length for pagination
+        count={ View==='Historic Connections' ? total_count : filteredRows.length} // Use filteredRows length for pagination
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
