@@ -84,12 +84,54 @@ const Header: React.FC = () => {
                      
                     }}>
 
-                        <Box style={{fontSize:"20px",fontWeight:"bold"}}>
+                        <Grid container xs={12} style={{fontSize:"20px",fontWeight:"bold",
 
-                            <img src={Logo} alt="Logo" style={{height:"180px",
-                            marginLeft:"-20px"
+                            flexDirection:'row',
+                            justifyContent:'flex-start',
+                            alignItems:'center'
+                        }}>
+
+                     
+ 
+
+
+                         <Grid item xs={6}>
+                         <img src={Logo} alt="Logo" style={{height:"180px",
+                            marginLeft:"-20px",
                             }}/>
-                        </Box>
+
+                         </Grid>
+
+                         <Grid item xs={4}>
+
+                         <span style={{
+                                   display: "flex",
+                                   justifyContent:'flex-start',
+                                   alignItems: "center",
+                                   fontFamily: "Roboto",
+                                   fontSize:'20px',
+                                   color: "#326591",
+                                   paddingLeft:"10px",
+                                   paddingTop:"5px",
+                                   fontWeight:500,
+                                   marginTop:"10px"
+
+
+                         
+                        }} >
+                            Beta
+                        </span>
+
+                         </Grid>
+                       
+                            
+
+                            
+                       
+                        </Grid>
+                    
+             
+               
                        
 
                     </Grid>
@@ -119,7 +161,7 @@ const Header: React.FC = () => {
                             
                             
                         }}>
-                        Home
+                        Home 
                         </Grid>
                     </Grid>
                     <Grid container item xs={3} style={{display: "flex",
@@ -146,7 +188,22 @@ const Header: React.FC = () => {
 
                             
                         }}>
-                        Layers
+                        Layers 
+                        <span style={{
+                                   display: "flex",
+                                   justifyContent:'flex-start',
+                                   alignItems: "center",
+                                   fontFamily: "Roboto",
+                                   fontSize:'14px',
+                                   color: "#326591",
+                                   paddingLeft:"10px",
+                                   paddingTop:"5px",
+                                   fontWeight:400
+
+                         
+                        }} >
+                            Soon!
+                        </span>
                         </Grid>
                     </Grid>
 
@@ -173,6 +230,21 @@ const Header: React.FC = () => {
                             
                         }}>
                         Inventory
+                        <span style={{
+                                   display: "flex",
+                                   justifyContent:'flex-start',
+                                   alignItems: "center",
+                                   fontFamily: "Roboto",
+                                   fontSize:'14px',
+                                   color: "#326591",
+                                   paddingLeft:"10px",
+                                   paddingTop:"5px",
+                                   fontWeight:400
+
+                         
+                        }} >
+                            Soon!
+                        </span>
                         </Grid>
                     </Grid>
 
@@ -187,6 +259,20 @@ const Header: React.FC = () => {
                     }}>
 
                        <SearchBar  SearchType="Quick Action"/>
+                       <span style={{
+                                   display: "flex",
+                                   justifyContent:'flex-start',
+                                   alignItems: "center",
+                                   fontFamily: "Roboto",
+                                   fontSize:'14px',
+                                   color: "#326591",
+                                   paddingLeft:"10px",
+                                   paddingTop:"15px",
+                                   fontWeight:400
+                         
+                        }} >
+                            Soon!
+                        </span>
                        
 
                     </Grid>

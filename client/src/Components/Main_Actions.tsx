@@ -143,8 +143,29 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
                 paddingLeft:'10px'
             }}>
                 {
-                        props.ActionName==="Start" && !iscapturing ? "Start Capture" : props.ActionName==="Start" && iscapturing ? "Stop Capture": props.ActionName==="Report" ? "Generate Report" : ""
+                        props.ActionName==="Start" && !iscapturing ? "Start Capture" : props.ActionName==="Start" && iscapturing ? "Stop Capture": props.ActionName==="Report" ? <> <span>
+                            Generate Report
+                        </span> 
+                        <span style={
+                            {
+                            
+                                fontFamily: "Roboto",
+                                fontSize:'14px',
+                                display:'flex',
+                                justifyContent:'center',
+                                alignItems:'center',
+                                color: "#326591",
+                                paddingLeft:"10px",
+                                fontWeight:400
+                            }
+                        }>
+                            Soon!
+                        </span> 
+                        </>
+                        : ""
                 }
+
+
             </Grid>
 
             </Grid>
