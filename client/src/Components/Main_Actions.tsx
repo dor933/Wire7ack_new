@@ -6,6 +6,7 @@ import {useMediaQuery} from '@mui/material';
 import axios from 'axios';
 import { useGlobal } from './Context/Global';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
+import { Padding } from '@mui/icons-material';
 
 interface Main_ActionsProps {
     ActionName: string;
@@ -140,12 +141,23 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
                 lineHeight: "normal",
                 display: "flex",
                 justifyContent: "flex-start",
-                paddingLeft:'10px'
+                paddingLeft:'5px'
             }}>
                 {
                         props.ActionName==="Start" && !iscapturing ? "Start Capture" : props.ActionName==="Start" && iscapturing ? "Stop Capture": props.ActionName==="Report" ? <> <span>
                             Generate Report
                         </span> 
+                        <Box style={{
+                             display: "flex",
+                             paddingLeft:'5px',
+                             paddingRight:'5px',
+                            
+                             alignItems: "flex-start",
+                             border: "1px solid rgba(48, 76, 87, 0.20)", 
+                             borderRadius: "10px",
+                             justifyContent:'center',
+                             marginLeft:'5px'
+                         }}>
                         <span style={
                             {
                             
@@ -155,12 +167,12 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
                                 justifyContent:'center',
                                 alignItems:'center',
                                 color: "#326591",
-                                paddingLeft:"10px",
                                 fontWeight:400
                             }
                         }>
                             Soon!
                         </span> 
+                        </Box>
                         </>
                         : ""
                 }

@@ -18,15 +18,15 @@ const Main: React.FC = () => {
   const {last_stream_id,setLast_stream_id} = useGlobal();
 
  
-  // //set interval to check if the capture is started or not every 3 minutes- wait for the server to send a message that the capture is started or not
-  // useEffect(()=>{
-  //   setInterval(async ()=>{
-  //     await axios.get('http://localhost:8000/api/maintainance/iscapture').then((response)=>{
-  //       console.log(response.data.iscapturing);
-  //       setIscapturing(response.data.iscapturing);
-  //     });
-  //   },30000);
-  // },[setIscapturing]);
+  //set interval to check if the capture is started or not every 3 minutes- wait for the server to send a message that the capture is started or not
+  useEffect(()=>{
+    setInterval(async ()=>{
+      await axios.get('http://localhost:8000/api/maintainance/iscapture').then((response)=>{
+        console.log(response.data.iscapturing);
+        setIscapturing(response.data.iscapturing);
+      });
+    },30000);
+  },[setIscapturing]);
 
   useEffect(()=>{
 

@@ -104,23 +104,40 @@ const Header: React.FC = () => {
 
                          <Grid item xs={4}>
 
+
+
+
+                         <Box style={{
+                             display: "flex",
+                             padding: "5px 10px",
+                             alignItems: "center",
+                             border: "1px solid rgba(48, 76, 87, 0.20)", 
+                             borderRadius: "10px",
+                             width: "fit-content",
+                             justifyContent:'center'
+                         }}>
+       
+
                          <span style={{
                                    display: "flex",
-                                   justifyContent:'flex-start',
                                    alignItems: "center",
                                    fontFamily: "Roboto",
                                    fontSize:'20px',
                                    color: "#326591",
-                                   paddingLeft:"10px",
-                                   paddingTop:"5px",
+                                   
                                    fontWeight:500,
-                                   marginTop:"10px"
 
 
                          
                         }} >
                             Beta
                         </span>
+
+                        </Box>
+
+                        
+
+                        
 
                          </Grid>
                        
@@ -188,7 +205,26 @@ const Header: React.FC = () => {
 
                             
                         }}>
-                        Layers 
+
+                        <span style={{
+                            display:'flex',
+                            justifyContent:'center',
+                            alignItems:'center'
+                        }}>
+Layers
+                        </span>
+                         
+
+                        <Box style={{
+                             display: "flex",
+                             padding: "5px 10px",
+                             alignItems: "center",
+                             border: "1px solid rgba(48, 76, 87, 0.20)", 
+                             borderRadius: "10px",
+                             width: "fit-content",
+                             justifyContent:'center',
+                             marginLeft:'5px'
+                         }}>
                         <span style={{
                                    display: "flex",
                                    justifyContent:'flex-start',
@@ -196,14 +232,14 @@ const Header: React.FC = () => {
                                    fontFamily: "Roboto",
                                    fontSize:'14px',
                                    color: "#326591",
-                                   paddingLeft:"10px",
-                                   paddingTop:"5px",
                                    fontWeight:400
 
                          
                         }} >
                             Soon!
+
                         </span>
+                        </Box>
                         </Grid>
                     </Grid>
 
@@ -229,7 +265,25 @@ const Header: React.FC = () => {
                             
                             
                         }}>
-                        Inventory
+                              <span style={{
+                            display:'flex',
+                            justifyContent:'center',
+                            alignItems:'center'
+                        }}>
+Inventory
+                        </span>
+                         
+
+                        <Box style={{
+                             display: "flex",
+                             padding: "5px 10px",
+                             alignItems: "center",
+                             border: "1px solid rgba(48, 76, 87, 0.20)", 
+                             borderRadius: "10px",
+                             width: "fit-content",
+                             justifyContent:'center',
+                             marginLeft:'5px'
+                         }}>
                         <span style={{
                                    display: "flex",
                                    justifyContent:'flex-start',
@@ -237,14 +291,16 @@ const Header: React.FC = () => {
                                    fontFamily: "Roboto",
                                    fontSize:'14px',
                                    color: "#326591",
-                                   paddingLeft:"10px",
-                                   paddingTop:"5px",
                                    fontWeight:400
 
                          
                         }} >
                             Soon!
+
                         </span>
+                        </Box>
+                           
+                 
                         </Grid>
                     </Grid>
 
@@ -259,6 +315,16 @@ const Header: React.FC = () => {
                     }}>
 
                        <SearchBar  SearchType="Quick Action"/>
+                       <Box style={{
+                             display: "flex",
+                             padding:"5px 10px",
+                             alignItems: "center",
+                             border: "1px solid rgba(48, 76, 87, 0.20)", 
+                             borderRadius: "10px",
+                             width: "fit-content",
+                             justifyContent:'center',
+                             marginLeft:'5px',
+                         }}>
                        <span style={{
                                    display: "flex",
                                    justifyContent:'flex-start',
@@ -266,13 +332,12 @@ const Header: React.FC = () => {
                                    fontFamily: "Roboto",
                                    fontSize:'14px',
                                    color: "#326591",
-                                   paddingLeft:"10px",
-                                   paddingTop:"15px",
                                    fontWeight:400
                          
                         }} >
                             Soon!
                         </span>
+                        </Box>
                        
 
                     </Grid>
