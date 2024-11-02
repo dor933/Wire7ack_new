@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Packet = void 0;
 class Packet {
-    constructor(PacketID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, ActivationID, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, 
+    constructor(PacketID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, ActivationID, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, ApplicationProtocol, 
     // Existing fields for error detection
     tcpFlags, tcpSeq, tcpAck, tcpChecksumStatus, udpChecksumStatus, arpOpcode, ipChecksumStatus, errorIndicator, 
     // New fields for ICMP
@@ -22,7 +22,7 @@ class Packet {
         this.flags = flags;
         this.frameLength = frameLength;
         this.connectionID = connectionID;
-        this.Interface_and_protocol = Interface_and_protocol;
+        this.ApplicationProtocol = ApplicationProtocol;
         this.tcpFlags = tcpFlags;
         this.tcpSeq = tcpSeq;
         this.tcpAck = tcpAck;

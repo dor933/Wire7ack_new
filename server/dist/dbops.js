@@ -116,7 +116,7 @@ async function writePacketToDb(connection, packet, streamId) {
       INSERT INTO Packets (
         StreamID, SourceIP, DestinationIP, Protocol, Payload, Timestamp, Size, 
         ActivationID, SourceMAC, DestinationMAC, SourcePort, DestinationPort, Flags, 
-        FrameLength, ConnectionID, InterfaceAndProtocol, TCPFlagSYN, TCPFlagACK, 
+        FrameLength, ConnectionID, ApplicationProtocol, TCPFlagSYN, TCPFlagACK, 
         TCPFlagFIN, TCPFlagRST, TCPFlagPSH, TCPFlagURG, TCPFlagECE, TCPFlagCWR, 
         TCPFlagNS, TCPSeq, TCPAck, TCPChecksumStatus, UDPChecksumStatus, ARPOpcode, 
         IPChecksumStatus, ErrorIndicator, ICMPType, ICMPCode, ICMPChecksumStatus
@@ -124,7 +124,7 @@ async function writePacketToDb(connection, packet, streamId) {
       VALUES (
        @StreamID, @SourceIP, @DestinationIP, @Protocol, @Payload, @Timestamp, @Size, 
         @ActivationID, @SourceMAC, @DestinationMAC, @SourcePort, @DestinationPort, @Flags, 
-        @FrameLength, @ConnectionID, @InterfaceAndProtocol, @TCPFlagSYN, @TCPFlagACK, 
+        @FrameLength, @ConnectionID, @ApplicationProtocol, @TCPFlagSYN, @TCPFlagACK, 
         @TCPFlagFIN, @TCPFlagRST, @TCPFlagPSH, @TCPFlagURG, @TCPFlagECE, @TCPFlagCWR, 
         @TCPFlagNS, @TCPSeq, @TCPAck, @TCPChecksumStatus, @UDPChecksumStatus, @ARPOpcode, 
         @IPChecksumStatus, @ErrorIndicator, @ICMPType, @ICMPCode, @ICMPChecksumStatus
@@ -145,7 +145,7 @@ async function writePacketToDb(connection, packet, streamId) {
         .input('Flags', mssql.VarChar(20), packet.flags ? packet.flags : "")
         .input('FrameLength', mssql.Int, packet.frameLength ? packet.frameLength : null)
         .input('ConnectionID', mssql.Int, packet.connectionID)
-        .input('InterfaceAndProtocol', mssql.VarChar(50), packet.Interface_and_protocol ? packet.Interface_and_protocol : "")
+        .input('ApplicationProtocol', mssql.VarChar(50), packet.ApplicationProtocol ? packet.ApplicationProtocol : "")
         .input('TCPFlagSYN', mssql.Bit, ((_a = packet.tcpFlags) === null || _a === void 0 ? void 0 : _a.syn) ? 1 : 0)
         .input('TCPFlagACK', mssql.Bit, ((_b = packet.tcpFlags) === null || _b === void 0 ? void 0 : _b.ack) ? 1 : 0)
         .input('TCPFlagFIN', mssql.Bit, ((_c = packet.tcpFlags) === null || _c === void 0 ? void 0 : _c.fin) ? 1 : 0)

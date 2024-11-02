@@ -317,8 +317,10 @@ Inventory
                        <SearchBar  SearchType="Quick Action"/>
                        <Box style={{
                              display: "flex",
-                             padding:"5px 10px",
+                             padding:"0px 10px",
+                             height:'30px',
                              alignItems: "center",
+                             alignSelf:'center',
                              border: "1px solid rgba(48, 76, 87, 0.20)", 
                              borderRadius: "10px",
                              width: "fit-content",

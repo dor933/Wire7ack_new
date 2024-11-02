@@ -139,24 +139,26 @@ const Main_Actions: React.FC<Main_ActionsProps> = (props) => {
                 fontWeight: "600",
                 fontStyle: "normal",
                 lineHeight: "normal",
+                
                 display: "flex",
                 justifyContent: "flex-start",
                 paddingLeft:'5px'
             }}>
                 {
                         props.ActionName==="Start" && !iscapturing ? "Start Capture" : props.ActionName==="Start" && iscapturing ? "Stop Capture": props.ActionName==="Report" ? <> <span>
-                            Generate Report
+                            Report
                         </span> 
                         <Box style={{
                              display: "flex",
-                             paddingLeft:'5px',
-                             paddingRight:'5px',
+                          
                             
-                             alignItems: "flex-start",
+                             alignItems: "center",
                              border: "1px solid rgba(48, 76, 87, 0.20)", 
                              borderRadius: "10px",
-                             justifyContent:'center',
-                             marginLeft:'5px'
+                             marginLeft:'25px',
+                             paddingLeft:'10px',
+                             paddingRight:'10px'
+                             
                          }}>
                         <span style={
                             {

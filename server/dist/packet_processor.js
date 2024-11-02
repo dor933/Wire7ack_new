@@ -108,7 +108,7 @@ async function processCaptureFile(filePath, ws, Streams, dbConnection, callback)
                     let assignedStream = Assign_Packet_To_Stream(packet, Streams);
                     if (!assignedStream) {
                         // Create a new stream
-                        let newStream = Create_Stream(packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.Protocol);
+                        let newStream = Create_Stream(packet.connectionID, packet.SourceIP, packet.DestinationIP, packet.ActivationID, packet.Protocol, true, packet.Timestamp, packet.Timestamp, 0, 0, BigInt(0), packet.ApplicationProtocol);
                         newStream.Packets.push(packet);
                         Streams.push(newStream);
                     }
@@ -203,7 +203,7 @@ function fromWiresharkToPacketObject(packetObj) {
     // Initialize other fields as needed
     const ActivationID = 0;
     let connectionID = 0;
-    const Interface_and_protocol = '';
+    let ApplicationProtocol = '';
     // Existing fields for error detection
     let tcpFlags;
     let tcpSeq;
@@ -234,26 +234,49 @@ function fromWiresharkToPacketObject(packetObj) {
         tcpAck = parseInt(tcp['tcp.ack_raw']) || undefined;
         tcpChecksumStatus = parseInt(tcp['tcp.checksum.status']) || undefined;
         connectionID = parseInt(tcp['tcp.stream']) || 0;
+        if (sourcePort == 443 || DestPort == 443) {
+            ApplicationProtocol = 'HTTPS';
+        }
+        else if (sourcePort == 80 || DestPort == 80) {
+            ApplicationProtocol = 'HTTP';
+        }
+        else if (sourcePort == 22 || DestPort == 22) {
+            ApplicationProtocol = 'SSH';
+        }
+        else if (sourcePort == 53 || DestPort == 53) {
+            ApplicationProtocol = 'DNS';
+        }
+        else {
+            ApplicationProtocol = 'OTHER';
+        }
     }
     if (udp) {
         udpChecksumStatus = parseInt(udp['udp.checksum.status']) || undefined;
         connectionID = parseInt(udp['udp.stream']) || 0;
+        if (sourcePort == 53 || DestPort == 53) {
+            ApplicationProtocol = 'DNS';
+        }
+        else {
+            ApplicationProtocol = 'OTHER';
+        }
     }
     if (arp) {
         arpOpcode = parseInt(arp['arp.opcode']) || undefined;
         connectionID = parseInt(arp['arp.src.hw_mac']) || 0;
+        ApplicationProtocol = 'ARP';
     }
     if (icmp) {
         icmpType = parseInt(icmp['icmp.type']) || undefined;
         icmpCode = parseInt(icmp['icmp.code']) || undefined;
         icmpChecksumStatus = parseInt(icmp['icmp.checksum.status']) || undefined;
         connectionID = parseInt(icmp['icmp.stream']) || 0;
+        ApplicationProtocol = 'ICMP';
     }
     if (ip) {
         ipChecksumStatus = parseInt(ip['ip.checksum.status']) || undefined;
     }
     const packet = new Packet_1.Packet(PacketID, SourceIP, DestinationIP, Protocol, '', // Payload can be extracted if needed
-    Timestamp, Size, (main_1.currentactivation === null || main_1.currentactivation === void 0 ? void 0 : main_1.currentactivation.ActivationID) || 0, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, Interface_and_protocol, tcpFlags, tcpSeq, tcpAck, tcpChecksumStatus, udpChecksumStatus, arpOpcode, ipChecksumStatus, false, // errorIndicator, initially false
+    Timestamp, Size, (main_1.currentactivation === null || main_1.currentactivation === void 0 ? void 0 : main_1.currentactivation.ActivationID) || 0, sourceMAC, destinationMAC, sourcePort, DestPort, flags, frameLength, connectionID, ApplicationProtocol, tcpFlags, tcpSeq, tcpAck, tcpChecksumStatus, udpChecksumStatus, arpOpcode, ipChecksumStatus, false, // errorIndicator, initially false
     icmpType, icmpCode, icmpChecksumStatus);
     return packet;
 }

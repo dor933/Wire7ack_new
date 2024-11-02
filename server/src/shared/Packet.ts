@@ -15,7 +15,7 @@ export class Packet {
     public flags: string,
     public frameLength: number,
     public connectionID: number,
-    public Interface_and_protocol: string,
+    public ApplicationProtocol: string,
     // Existing fields for error detection
     public tcpFlags?: {
       syn: boolean;

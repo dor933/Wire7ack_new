@@ -113,7 +113,9 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       setIsLoading(false);
     }
   }, [page, rowsPerPage, last_stream_id,
-    sorting_filters,setLast_stream_id
+    sorting_filters,setLast_stream_id,
+    ProtocolFilter,SourceIPFilter,DestinationIPFilter,starttimedate,endtimedate,
+    
   ]);
 
 
@@ -126,7 +128,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
 
   // Function to update filtered rows based on filters
-  const changeFilteredRows = useCallback((islivedata?:boolean) => {
+  const changeFilteredRows = useCallback((islivedata?:boolean,isreset?:boolean) => {
 
     console.log('sorting_filters is',sorting_filters)
 
@@ -214,12 +216,14 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       }
 
     }
+    setFilteredRows(tempRows);
 
  
+    if(isreset){
+      setPage(0);
+    }
    
 
-    setFilteredRows(tempRows);
-    setPage(0); // Reset page to 0 whenever filters change
   
   },[View, props.rows, props.invalid_streams, fetchHistoricStreams, 
     sorting_filters
@@ -239,11 +243,17 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
 
   useEffect(() => {
   
-    changeFilteredRows();
+    changeFilteredRows(false,true);  
 
       
     
-  }, [View, page, rowsPerPage,]);
+  }, [View, rowsPerPage]);
+
+
+  useEffect(()=>{
+    changeFilteredRows(false,false);
+  },[page])
+
 
  
 
@@ -264,7 +274,8 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
     'ID',
     'Source IP',
     'Destination IP',
-    'Protocol',
+    'Application Protocol',
+    'Transport Protocol',
     'Validity',
     'Start Time',
     'Duration',
@@ -494,6 +505,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                     <TableCell>{row.connectionID}</TableCell>
                     <TableCell>{row.SourceIP}</TableCell>
                     <TableCell>{row.DestinationIP}</TableCell>
+                    <TableCell>{row.ApplicationProtocol}</TableCell>
                     <TableCell>{row.Protocol}</TableCell>
                     <TableCell>{row.validity.toString()}</TableCell>
                     <TableCell>{row.StartTime.toString()}</TableCell>
@@ -544,7 +556,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                                   </TableCell>
                                   <TableCell>Frame Length</TableCell>
                                   <TableCell>Connection ID</TableCell>
-                                  <TableCell>Interface and Protocol</TableCell>
+                                  <TableCell>Application Protocol</TableCell>
                                   <TableCell>Timestamp</TableCell>
                                   {/* New columns for error detection */}
                                   <TableCell>
@@ -601,7 +613,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
                                     <TableCell>{packet.flags || 'N/A'}</TableCell>
                                     <TableCell>{packet.frameLength}</TableCell>
                                     <TableCell>{packet.connectionID}</TableCell>
-                                    <TableCell>{packet.Interface_and_protocol}</TableCell>
+                                    <TableCell>{packet.ApplicationProtocol}</TableCell>
                                     <TableCell>{packet.Timestamp.toString()}</TableCell>
                                     {/* New columns for error detection */}
                                     <TableCell>
