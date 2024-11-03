@@ -51,7 +51,7 @@ const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
         justifyContent: 'center',
         paddingLeft: useTextInput?'0px': '10px',
         paddingRight: useTextInput? '0px': '10px',
-        minHeight: '58px',
+        minHeight: '54px',
         paddingBottom:useTextInput? '0px': '3.5px',
         borderRadius: '10px',
         border: '1px solid rgba(48, 76, 87, 0.20)',
@@ -66,7 +66,7 @@ const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
           style={{
             color: '#304C57',
             fontFamily: 'Roboto',
-            fontSize: '16px',
+            fontSize: '14px',
             fontStyle: 'normal',
             fontWeight: 400,
             lineHeight: 'normal',
@@ -89,7 +89,7 @@ const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
               }}
               InputProps={{
                 style: {
-                  fontSize: '16px',
+                  fontSize: '14px',
                   color: '#304C57',
                   fontWeight: 400,
                   opacity:1
@@ -124,7 +124,7 @@ const Top_Table_Element: React.FC<Top_Table_ElementProps> = ({
                 onClick={handleClick}
                 sx={{
                   display: 'flex',
-                  justifyContent: 'center',
+                  justifyContent: 'flex-end',
                   alignItems: 'center',
                   padding: '0px',
                   minHeight: '36px', // Keep the height fixed

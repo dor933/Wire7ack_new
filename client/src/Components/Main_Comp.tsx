@@ -41,7 +41,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     const [isfiltervisible,setisfiltervisible]=useState<boolean>(false);
     const [startdatetime,setstartdatetime]=useState<string>('');
     const [enddatetime,setenddatetime]=useState<string>('');
-    const [tablefilters,settablefilters]=useState<string[]>(["Start Time", "End Time", "Protocol", "Flags", "Source IP", "Destination IP", "Validity"]);
+    const [tablefilters,settablefilters]=useState<string[]>(["Start Time", "End Time", "Protocol", "Source IP", "Destination IP", "Flags","Application Protocol"]);
     const [chosentablefilters,setchosentablefilters]=useState<string[]>([]);
     const [isfilter2visible,setisfilter2visible]=useState<boolean>(false);
     const maxtablefilters=4;
@@ -367,7 +367,36 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
           SetNewValue={setSourceIPFilter}
         />
       );
-    } else if (filter === "Destination IP") {
+    }
+    
+    else if(filter==="Application Protocol"){
+
+      return (
+        <Top_Table_Element
+        key={filter}
+        Data={
+          // List all the unique values of the Protocol field
+          newrows.concat(props.invalid_streams).concat(historic_streams)
+            .map((row) => row.ApplicationProtocol)
+            .filter((value, index, self) => self.indexOf(value) === index)
+        }
+        ElementName="Application Protocol"
+        Icon={
+          <KeyboardArrowDownIcon
+            style={{
+              color: "#000000",
+              fontSize: "23px",
+              marginTop: "5px",
+            }}
+          />
+        }
+        SetNewValue={setProtocolFilter}
+      />
+
+      )
+    }
+
+    else if (filter === "Destination IP") {
       return (
         <Top_Table_Element
           key={filter}
