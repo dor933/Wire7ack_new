@@ -40,6 +40,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
     const [DestinationIPFilter, setDestinationIPFilter] = useState<string>('');
     const [isfiltervisible,setisfiltervisible]=useState<boolean>(false);
     const [startdatetime,setstartdatetime]=useState<string>('');
+    const [ApplicationProtocol,SetApplicationProtocol]= useState<string>('');
     const [enddatetime,setenddatetime]=useState<string>('');
     const [tablefilters,settablefilters]=useState<string[]>(["Start Time", "End Time", "Protocol", "Source IP", "Destination IP", "Flags","Application Protocol"]);
     const [chosentablefilters,setchosentablefilters]=useState<string[]>([]);
@@ -390,7 +391,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
             }}
           />
         }
-        SetNewValue={setProtocolFilter}
+        SetNewValue={SetApplicationProtocol}
       />
 
       )
@@ -526,6 +527,7 @@ const Main_Comp: React.FC<Main_CompProps> = (props) => {
                 starttimedate={startdatetime}
                 endtimedate={enddatetime}
                 invalid_streams={props.invalid_streams}
+                ApplicationProtocol={ApplicationProtocol}
                 
 
                 />
