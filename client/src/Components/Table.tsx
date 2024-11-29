@@ -28,6 +28,7 @@ interface PaginatedTableProps {
   starttimedate: string;
   endtimedate: string;
   invalid_streams: Stream[];
+  ApplicationProtocol:string;
 }
 
 const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
@@ -51,6 +52,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   const FlagsFilter = props.FlagsFilter;
   const SourceIPFilter = props.SourceIPFilter;
   const DestinationIPFilter = props.DestinationIPFilter;
+  const ApplicationProtocol=props.ApplicationProtocol;
   const starttimedate = new Date(props.starttimedate);
   const endtimedate = new Date(props.endtimedate);
   const [isLoading, setIsLoading] = useState(false);
@@ -115,6 +117,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
   }, [page, rowsPerPage, last_stream_id,
     sorting_filters,setLast_stream_id,
     ProtocolFilter,SourceIPFilter,DestinationIPFilter,starttimedate,endtimedate,
+    ApplicationProtocol
     
   ]);
 
@@ -159,6 +162,10 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
       }
 
       if (endtimedate !== null && row.EndTime > endtimedate) {
+        return false;
+      }
+
+      if(ApplicationProtocol!=='' && !row.ApplicationProtocol.includes(ApplicationProtocol)){
         return false;
       }
 
@@ -225,8 +232,18 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
    
 
   
-  },[View, props.rows, props.invalid_streams, fetchHistoricStreams, 
-    sorting_filters
+  },[    View, 
+    props.rows, 
+    props.invalid_streams, 
+    fetchHistoricStreams, 
+    sorting_filters,
+    ProtocolFilter,
+    FlagsFilter,
+    SourceIPFilter,
+    DestinationIPFilter,
+    ApplicationProtocol,
+    starttimedate,
+    endtimedate
   ])
 
 
@@ -258,17 +275,20 @@ const PaginatedTable: React.FC<PaginatedTableProps> = (props) => {
  
 
   // Update filteredRows when filters or props.rows change
-  useEffect(() => {
-    changeFilteredRows();
-  }, [
-    ProtocolFilter,
-    FlagsFilter,
-    SourceIPFilter,
-    DestinationIPFilter,
-    sorting_filters,
+  // useEffect(() => {
+  //   changeFilteredRows();
+  // }, [
+  //   ProtocolFilter,
+  //   FlagsFilter,
+  //   SourceIPFilter,
+  //   DestinationIPFilter,
+  //   sorting_filters,
+  //   ApplicationProtocol,
+  //   starttimedate,
+  //   endtimedate
     
     
-  ]);
+  // ]);
 
   const columns: string[] = [
     'ID',

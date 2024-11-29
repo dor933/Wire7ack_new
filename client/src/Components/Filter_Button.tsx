@@ -45,7 +45,9 @@ const Filter_Button:React.FC<Filter_ButtonProps> = ({setisfiltervisible,isfilter
     
 
 
-          <Grid item xs={2} >
+          <Grid item xs={2} style={{
+            
+          }} >
     <FilterAltIcon style={{
         color: "#326591",
         fontSize: "23px",
