@@ -12,7 +12,7 @@ import { getDbConnection } from './dbConnection';
 import { Activation } from './shared/Activation';
 import { writeActivationToDb } from './dbops';
 import { promisify } from 'util';
-
+import logger from './logger';
 const execAsync = promisify(exec);
 
 

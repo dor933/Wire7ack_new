@@ -43,6 +43,12 @@ declare module 'json-bigint' {
     export = cors;
   }
 
+  declare module 'logger' {
+    import { Logger } from 'winston';
+    const logger: Logger;
+    export default logger;
+}
+
 
   declare module 'stream-json' {
     import { Transform } from 'stream';
@@ -73,4 +79,5 @@ declare module 'json-bigint' {
   }
 
   //declate module ConnectionPool
+
 

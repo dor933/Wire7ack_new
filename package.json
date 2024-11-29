@@ -8,7 +8,6 @@
     "server": "cd server && npm start",
     "client": "cd client && npm start",
     "dev": "cd server && npm run build && cd.. && concurrently \"npm run server\" \"npm run client\""
-    
   },
   "author": "",
   "license": "ISC",

@@ -145,7 +145,7 @@ export async function processCaptureFile(
             0,
             0,
             BigInt(0),
-            packet.ApplicationProtocol
+            packet.InterfaceAndProtocol
           );
           newStream.Packets.push(packet);
           Streams.push(newStream);
@@ -251,7 +251,7 @@ function fromWiresharkToPacketObject(packetObj: any): Packet {
   // Initialize other fields as needed
   const ActivationID = 0;
   let connectionID = 0;
-  let ApplicationProtocol = '';
+  let InterfaceAndProtocol = '';
 
   // Existing fields for error detection
   let tcpFlags;
@@ -287,20 +287,20 @@ function fromWiresharkToPacketObject(packetObj: any): Packet {
     connectionID = parseInt(tcp['tcp.stream']) || 0;
 
     if(sourcePort==443 || DestPort==443){
-      ApplicationProtocol='HTTPS';
+      InterfaceAndProtocol='HTTPS';
 
     }
     else if(sourcePort==80 || DestPort==80){
-      ApplicationProtocol='HTTP';
+      InterfaceAndProtocol='HTTP';
     }
     else if(sourcePort==22 || DestPort==22){
-      ApplicationProtocol='SSH';
+      InterfaceAndProtocol='SSH';
     }
     else if(sourcePort==53 || DestPort==53){
-      ApplicationProtocol='DNS';
+      InterfaceAndProtocol='DNS';
     }
     else{
-      ApplicationProtocol='OTHER';
+      InterfaceAndProtocol='OTHER';
     }
   }
 
@@ -308,17 +308,17 @@ function fromWiresharkToPacketObject(packetObj: any): Packet {
     udpChecksumStatus = parseInt(udp['udp.checksum.status']) || undefined;
     connectionID = parseInt(udp['udp.stream']) || 0;
     if(sourcePort==53 || DestPort==53){
-      ApplicationProtocol='DNS';
+      InterfaceAndProtocol='DNS';
     }
     else{
-      ApplicationProtocol='OTHER';
+      InterfaceAndProtocol='OTHER';
     }
   }
 
   if (arp) {
     arpOpcode = parseInt(arp['arp.opcode']) || undefined;
     connectionID = parseInt(arp['arp.src.hw_mac']) || 0;
-    ApplicationProtocol='ARP';
+    InterfaceAndProtocol='ARP';
   }
 
   if (icmp) {
@@ -326,7 +326,7 @@ function fromWiresharkToPacketObject(packetObj: any): Packet {
     icmpCode = parseInt(icmp['icmp.code']) || undefined;
     icmpChecksumStatus = parseInt(icmp['icmp.checksum.status']) || undefined;
     connectionID = parseInt(icmp['icmp.stream']) || 0;
-    ApplicationProtocol='ICMP';
+    InterfaceAndProtocol='ICMP';
   }
 
   if (ip) {
@@ -349,7 +349,7 @@ function fromWiresharkToPacketObject(packetObj: any): Packet {
     flags,
     frameLength,
     connectionID,
-    ApplicationProtocol,
+    InterfaceAndProtocol,
     tcpFlags,
     tcpSeq,
     tcpAck,
